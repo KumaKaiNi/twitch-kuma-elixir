@@ -29,6 +29,7 @@ defmodule TwitchKuma do
     match "!predict ~question", :prediction
     match "!fortune", :fortune
     match "!smug", :smug
+    match "!np", :lastfm_np
 
     match ["hello", "hi", "hey", "sup"], :hello
     match ["same", "Same", "SAME"], :same
@@ -105,6 +106,20 @@ defmodule TwitchKuma do
     result = response.data.images |> Enum.random
 
     reply result.link
+  end
+
+  defh lastfm_np do
+    timeframe = :os.system_time(:seconds) - 180
+    url = "http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=rekyuu&api_key=#{Application.get_env(:twitch_kuma, :lastfm_key)}&format=json&limit=1&from=#{timeframe}"
+
+    request = HTTPoison.get!(url)
+    response = Poison.Parser.parse!((request.body), keys: :atoms)
+    track = response.recenttracks.track
+
+    case List.first(track) do
+      nil -> nil
+      song -> reply "#{song.artist.'#text'} - #{song.name} [#{song.album.'#text'}]"
+    end
   end
 
   defh hello do
