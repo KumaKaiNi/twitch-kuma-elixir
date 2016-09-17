@@ -14,7 +14,7 @@ defmodule TwitchKuma do
     if user == nil do
       false
     else
-      user.nick == "rekyuu_senkan!rekyuu_senkan@rekyuu_senkan.tmi.twitch.tv"
+      user.nick == "rekyuu_senkan"
     end
   end
 
