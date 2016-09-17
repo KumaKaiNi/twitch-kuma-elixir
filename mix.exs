@@ -27,6 +27,6 @@ defmodule TwitchKuma.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:kaguya, "~> 0.4.8"}]
+    [{:kaguya, "~> 0.4.9"}]
   end
 end
