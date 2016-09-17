@@ -6,12 +6,10 @@ defmodule TwitchKuma do
   end
 
   def rekyuu_check(%{user: %{nick: nick}, args: [chan]}) do
-    require Logger
-
     pid = Kaguya.Util.getChanPid(chan)
     user = GenServer.call(pid, {:get_user, nick})
 
-    Logger.log :info, user.nick
+    IO.puts user
 
     if user == nil do
       false
