@@ -13,8 +13,13 @@ defmodule TwitchKuma do
     if user == nil do
       false
     else
-      user.nick == "rekyuu_senkan"
+      user.mode == :op
     end
+  end
+
+  # Required to properly identify mods and such
+  handle "001" do
+    GenServer.call(Kaguya.Core, {:send, %Kaguya.Core.Message{command: "CAP", args: ["REQ"], trailing: "twitch.tv/membership"}})
   end
 
   # Commands list

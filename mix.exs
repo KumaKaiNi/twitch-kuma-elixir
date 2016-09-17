@@ -29,7 +29,7 @@ defmodule TwitchKuma.Mixfile do
   defp deps do
     [{:httpoison, "~> 0.8.1"},
      {:poison, "~> 1.5"},
-     {:kaguya, "~> 0.4.9"}
+     {:kaguya, "~> 0.5.0"}
     ]
   end
 end
