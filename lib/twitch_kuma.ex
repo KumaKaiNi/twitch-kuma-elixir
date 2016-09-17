@@ -1,0 +1,2 @@
+defmodule TwitchKuma do
+end
