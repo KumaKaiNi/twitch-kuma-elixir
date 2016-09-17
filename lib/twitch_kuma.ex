@@ -30,6 +30,8 @@ defmodule TwitchKuma do
     match "!fortune", :fortune
     match "!smug", :smug
     match "!np", :lastfm_np
+    match "!race", :race
+    match "!anime", :anime
 
     match ["hello", "hi", "hey", "sup"], :hello
     match ["same", "Same", "SAME"], :same
@@ -38,6 +40,8 @@ defmodule TwitchKuma do
     # Mod command list
     enforce :is_mod do
       match "!kuma", :ping
+      match "!setrace ~raceid", :set_race
+      match "!setanime ~anime", :set_anime
     end
   end
 
@@ -122,6 +126,16 @@ defmodule TwitchKuma do
     end
   end
 
+  defh race do
+    raceid = query_data("race")
+    reply "http://www.speedrunslive.com/race/?id=#{raceid}"
+  end
+
+  defh anime do
+    anime = query_data("anime")
+    reply "Anime is #{anime}"
+  end
+
   defh hello do
     replies = ["sup loser", "yo", "ay", "hi", "wassup"]
     if one_to(25) do
@@ -142,4 +156,14 @@ defmodule TwitchKuma do
 
   # Moderator action handlers
   defh ping, do: reply "Kuma~!"
+
+  defh set_race(%{"raceid" => raceid}) do
+    store_data("race", raceid)
+    reply "Done! http://www.speedrunslive.com/race/?id=#{raceid}"
+  end
+
+  defh set_anime(%{"anime" => anime}) do
+    store_data("anime", anime)
+    reply "All set!"
+  end
 end
