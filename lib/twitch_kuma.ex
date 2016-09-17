@@ -1,15 +1,14 @@
 defmodule TwitchKuma do
   use Kaguya.Module, "main"
 
-  validator :is_rekyuu do
-    :rekyuu_check
+  # Validator for mods
+  validator :is_mod do
+    :mod_check
   end
 
-  def rekyuu_check(%{user: %{nick: nick}, args: [chan]}) do
+  def mod_check(%{user: %{nick: nick}, args: [chan]}) do
     pid = Kaguya.Util.getChanPid(chan)
     user = GenServer.call(pid, {:get_user, nick})
-
-    IO.puts user
 
     if user == nil do
       false
@@ -18,16 +17,29 @@ defmodule TwitchKuma do
     end
   end
 
+  # Commands list
   handle "PRIVMSG" do
-    match "hi", :hiHandler
-    match "!say ~message", :sayHandler
+    match "!uptime", :uptime
+    match "!time", :local_time
 
-    validate :is_rekyuu do
-      match ["!ping", "!p"], :pingHandler
+    # Mod command list
+    validate :is_mod do
+      match ["!ping", "!p"], :ping
     end
   end
 
-  defh pingHandler, do: reply "pong!"
-  defh hiHandler(%{user: %{nick: nick}}), do: reply "hi #{nick}!"
-  defh sayHandler(%{"message" => response}), do: reply response
+  # Command action handlers
+  defh ping, do: reply "Pong!"
+
+  defh uptime do
+    url = "https://decapi.me/twitch/uptime?channel=rekyuu_senkan"
+    request =  HTTPoison.get! url
+
+    case request.body do
+      "Channel is not live." -> reply "Stream is not online!"
+      time -> reply "Stream has been live for #{time}."
+    end
+  end
+
+  defh local_time, do: reply "-local time-"
 end
