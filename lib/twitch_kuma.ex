@@ -2,11 +2,7 @@ defmodule TwitchKuma do
   use Kaguya.Module, "main"
 
   # Validator for mods
-  validator :is_mod do
-    :mod_check
-  end
-
-  def mod_check(%{user: %{nick: nick}, args: [chan]}) do
+  def is_mod(%{user: %{nick: nick}, args: [chan]}) do
     pid = Kaguya.Util.getChanPid(chan)
     user = GenServer.call(pid, {:get_user, nick})
 
@@ -17,9 +13,11 @@ defmodule TwitchKuma do
     end
   end
 
-  # Required to properly identify mods and such
+  # Enable Twitch Messaging Interface
   handle "001" do
     GenServer.call(Kaguya.Core, {:send, %Kaguya.Core.Message{command: "CAP", args: ["REQ"], trailing: "twitch.tv/membership"}})
+
+    Kaguya.Util.sendPM("Kuma~!", "#rekyuu_senkan")
   end
 
   # Commands list
@@ -28,13 +26,13 @@ defmodule TwitchKuma do
     match "!time", :local_time
 
     # Mod command list
-    validate :is_mod do
-      match ["!ping", "!p"], :ping
+    enforce :is_mod do
+      match ["!kuma"], :ping
     end
   end
 
   # Command action handlers
-  defh ping, do: reply "Pong!"
+  defh ping, do: reply "Kuma~!"
 
   defh uptime do
     url = "https://decapi.me/twitch/uptime?channel=rekyuu_senkan"
@@ -46,5 +44,8 @@ defmodule TwitchKuma do
     end
   end
 
-  defh local_time, do: reply "-local time-"
+  defh local_time do
+    {{_, _, _}, {hour, minute, _}} = :calendar.local_time
+    reply "It is #{hour}:#{minute} rekyuu's time."
+  end
 end
