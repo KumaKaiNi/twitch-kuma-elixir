@@ -2,6 +2,8 @@ defmodule TwitchKuma do
   use Kaguya.Module, "main"
   import TwitchKuma.Util
 
+  unless File.exists?("_db"), do: File.mkdir("_db")
+
   # Validator for mods
   def is_mod(%{user: %{nick: nick}, args: [chan]}) do
     pid = Kaguya.Util.getChanPid(chan)
