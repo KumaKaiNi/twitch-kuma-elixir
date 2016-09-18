@@ -14,29 +14,41 @@ defmodule TwitchKuma do
     end
   end
 
+  # Validator for rate limiting
+  def rate_limit(msg) do
+    {rate, _} = ExRated.check_rate(msg.trailing, 10_000, 1)
+
+    case rate do
+      :ok    -> true
+      :error -> false
+    end
+  end
+
   # Enable Twitch Messaging Interface
   handle "001" do
     GenServer.call(Kaguya.Core, {:send, %Kaguya.Core.Message{command: "CAP", args: ["REQ"], trailing: "twitch.tv/membership"}})
 
-    #Kaguya.Util.sendPM("Kuma~!", "#rekyuu_senkan")
+    Kaguya.Util.sendPM("Kuma~!", "#rekyuu_senkan")
   end
 
   # Commands list
   handle "PRIVMSG" do
-    match "!uptime", :uptime
-    match "!time", :local_time
-    match ["!coin", "!flip"], :coin_flip
-    match "!predict ~question", :prediction
-    match "!fortune", :fortune
-    match "!smug", :smug
-    match "!np", :lastfm_np
-    match "!race", :race
-    match "!anime", :anime
-    match_all :custom_command
+    enforce :rate_limit do
+      match "!uptime", :uptime
+      match "!time", :local_time
+      match ["!coin", "!flip"], :coin_flip
+      match "!predict ~question", :prediction
+      match "!fortune", :fortune
+      match "!smug", :smug
+      match "!np", :lastfm_np
+      match "!race", :race
+      match "!anime", :anime
+      match_all :custom_command
+      match ["ty kuma", "thanks kuma", "thank you kuma"], :ty_kuma
+    end
 
     match ["hello", "hi", "hey", "sup"], :hello
     match ["same", "Same", "SAME"], :same
-    match ["ty kuma", "thanks kuma", "thank you kuma"], :ty_kuma
 
     # Mod command list
     enforce :is_mod do
