@@ -1,24 +1,21 @@
-# TwitchKuma
+# Kuma Kai Ni
 
-**TODO: Add description**
+![](https://kyo.li/i/kfrp.jpg)
 
-## Installation
+## Available commands
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
+- `!anime` - that anime in the bottom right
+- `!coin` or `!flip` - flips a coin
+- `!fortune` - fortune cookie
+- `!np` - now playing music via lastfm
+- `!predict (question)` - 8ball prediction
+- `!smug` - smug anime girl
+- `!time` - rekyuu's local time
+- `!uptime` - stream uptime
 
-  1. Add `twitch_kuma` to your list of dependencies in `mix.exs`:
+## Moderator commands
 
-    ```elixir
-    def deps do
-      [{:twitch_kuma, "~> 0.1.0"}]
-    end
-    ```
-
-  2. Ensure `twitch_kuma` is started before your application:
-
-    ```elixir
-    def application do
-      [applications: [:twitch_kuma]]
-    end
-    ```
-
+- `!kuma` or `!ping` - ping/pong
+- `!setanime` - sets the anime for the `!anime` command
+- `!set :command ~action` - sets a custom command and response
+- `!del :command` - removes a custom command
