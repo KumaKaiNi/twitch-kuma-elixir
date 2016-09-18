@@ -17,3 +17,5 @@ erl_crash.dump
 *.ez
 
 secret.exs
+main
+commands
