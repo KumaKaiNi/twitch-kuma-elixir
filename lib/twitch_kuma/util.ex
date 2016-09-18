@@ -5,7 +5,7 @@ defmodule TwitchKuma.Util do
   def percent(n), do: Enum.random(1..100) <= n
 
   def store_data(table, key, value) do
-    file = '_db/#{table}.dets'
+    file = '#{app_dir}/db/#{table}.dets'
     {:ok, _} = :dets.open_file(table, [file: file, type: :set])
 
     :dets.insert(table, {key, value})
@@ -13,7 +13,7 @@ defmodule TwitchKuma.Util do
   end
 
   def query_data(table, key) do
-    file = '_db/#{table}.dets'
+    file = '#{app_dir}/db/#{table}.dets'
     {:ok, _} = :dets.open_file(table, [file: file, type: :set])
     result = :dets.lookup(table, key)
 
@@ -28,7 +28,7 @@ defmodule TwitchKuma.Util do
   end
 
   def delete_data(table, key) do
-    file = '_db/#{table}.dets'
+    file = '#{app_dir}/db/#{table}.dets'
     {:ok, _} = :dets.open_file(table, [file: file, type: :set])
     response = :dets.delete(table, key)
 
