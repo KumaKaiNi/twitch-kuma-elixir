@@ -187,7 +187,7 @@ defmodule TwitchKuma do
   end
 
   defh delete_custom_command(%{"command" => command}) do
-    action = query_data(:commands, command)
+    action = query_data(:commands, "!#{command}")
 
     case action do
       nil -> reply "Command does not exist."
