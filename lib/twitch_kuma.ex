@@ -30,7 +30,7 @@ defmodule TwitchKuma do
   handle "001" do
     GenServer.call(Kaguya.Core, {:send, %Kaguya.Core.Message{command: "CAP", args: ["REQ"], trailing: "twitch.tv/membership"}})
 
-    #Kaguya.Util.sendPM("Kuma~!", "#rekyuu_senkan")
+    Kaguya.Util.sendPM("Kuma~!", "#rekyuu_senkan")
   end
 
   # Commands list
@@ -43,7 +43,6 @@ defmodule TwitchKuma do
       match "!fortune", :fortune
       match "!smug", :smug
       match "!np", :lastfm_np
-      match "!race", :race
       match "!anime", :anime
       match_all :custom_command
       match ["ty kuma", "thanks kuma", "thank you kuma"], :ty_kuma
@@ -54,8 +53,7 @@ defmodule TwitchKuma do
 
     # Mod command list
     enforce :is_mod do
-      match "!kuma", :ping
-      match "!setrace :raceid", :set_race
+      match ["!kuma", "!ping"], :ping
       match "!setanime ~anime", :set_anime
       match "!set :command ~action", :set_custom_command
       match "!del :command", :delete_custom_command
@@ -143,11 +141,6 @@ defmodule TwitchKuma do
     end
   end
 
-  defh race do
-    raceid = query_data(:main, "race")
-    reply "http://www.speedrunslive.com/race/?id=#{raceid}"
-  end
-
   defh anime do
     anime = query_data(:main, "anime")
     reply "Anime is #{anime}"
@@ -182,11 +175,6 @@ defmodule TwitchKuma do
 
   # Moderator action handlers
   defh ping, do: reply "Kuma~!"
-
-  defh set_race(%{"raceid" => raceid}) do
-    store_data(:main, "race", raceid)
-    reply "Done! http://www.speedrunslive.com/race/?id=#{raceid}"
-  end
 
   defh set_anime(%{"anime" => anime}) do
     store_data(:main, "anime", anime)
