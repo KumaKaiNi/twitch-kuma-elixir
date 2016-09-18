@@ -1,18 +1,21 @@
 defmodule TwitchKuma.Util do
-  def app_dir, do: Application.app_dir(:twitch_kuma) <> "/"
+  def app_dir, do: "#{Application.app_dir(:twitch_kuma)}"
 
   def one_to(n), do: Enum.random(1..n) <= 1
   def percent(n), do: Enum.random(1..100) <= n
 
   def store_data(table, key, value) do
-    {:ok, db} = :dets.open_file(table, [type: :set, file: app_dir <> "#{table}.dets"])
-    :dets.insert(db, {key, value})
-    :dets.close(db)
+    file = '_db/#{table}.dets'
+    {:ok, _} = :dets.open_file(table, [file: file, type: :set])
+
+    :dets.insert(table, {key, value})
+    :dets.close(table)
   end
 
   def query_data(table, key) do
-    {:ok, db} = :dets.open_file(table, [type: :set, file: app_dir <> "#{table}.dets"])
-    result = :dets.lookup(db, key)
+    file = '_db/#{table}.dets'
+    {:ok, _} = :dets.open_file(table, [file: file, type: :set])
+    result = :dets.lookup(table, key)
 
     response =
       case result do
@@ -20,15 +23,16 @@ defmodule TwitchKuma.Util do
         [] -> nil
       end
 
-    :dets.close(db)
+    :dets.close(table)
     response
   end
 
   def delete_data(table, key) do
-    {:ok, db} = :dets.open_file(table, [type: :set, file: app_dir <> "#{table}.dets"])
-    response = :dets.delete(db, key)
+    file = '_db/#{table}.dets'
+    {:ok, _} = :dets.open_file(table, [file: file, type: :set])
+    response = :dets.delete(table, key)
 
-    :dets.close(db)
+    :dets.close(table)
     response
   end
 end

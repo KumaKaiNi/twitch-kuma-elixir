@@ -28,7 +28,7 @@ defmodule TwitchKuma do
   handle "001" do
     GenServer.call(Kaguya.Core, {:send, %Kaguya.Core.Message{command: "CAP", args: ["REQ"], trailing: "twitch.tv/membership"}})
 
-    Kaguya.Util.sendPM("Kuma~!", "#rekyuu_senkan")
+    #Kaguya.Util.sendPM("Kuma~!", "#rekyuu_senkan")
   end
 
   # Commands list
