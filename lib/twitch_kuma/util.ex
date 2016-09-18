@@ -4,6 +4,31 @@ defmodule TwitchKuma.Util do
   def one_to(n), do: Enum.random(1..n) <= 1
   def percent(n), do: Enum.random(1..100) <= n
 
-  def store_data(key, value), do: File.write!(app_dir <> key, value)
-  def query_data(key), do: File.read!(app_dir <> key)
+  def store_data(table, key, value) do
+    {:ok, db} = :dets.open_file(table, [type: :set])
+    :dets.insert(db, {key, value})
+    :dets.close(db)
+  end
+
+  def query_data(table, key) do
+    {:ok, db} = :dets.open_file(table, [type: :set])
+    result = :dets.lookup(db, key)
+
+    response =
+      case result do
+        [{_, value}] -> value
+        [] -> nil
+      end
+
+    :dets.close(db)
+    response
+  end
+
+  def delete_data(table, key) do
+    {:ok, db} = :dets.open_file(table, [type: :set])
+    response = :dets.delete(db, key)
+
+    :dets.close(db)
+    response
+  end
 end

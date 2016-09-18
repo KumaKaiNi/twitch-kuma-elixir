@@ -32,6 +32,7 @@ defmodule TwitchKuma do
     match "!np", :lastfm_np
     match "!race", :race
     match "!anime", :anime
+    match_all :custom_command
 
     match ["hello", "hi", "hey", "sup"], :hello
     match ["same", "Same", "SAME"], :same
@@ -40,8 +41,10 @@ defmodule TwitchKuma do
     # Mod command list
     enforce :is_mod do
       match "!kuma", :ping
-      match "!setrace ~raceid", :set_race
+      match "!setrace :raceid", :set_race
       match "!setanime ~anime", :set_anime
+      match "!set :command ~action", :set_custom_command
+      match "!del :command", :delete_custom_command
     end
   end
 
@@ -127,13 +130,22 @@ defmodule TwitchKuma do
   end
 
   defh race do
-    raceid = query_data("race")
+    raceid = query_data(:main, "race")
     reply "http://www.speedrunslive.com/race/?id=#{raceid}"
   end
 
   defh anime do
-    anime = query_data("anime")
+    anime = query_data(:main, "anime")
     reply "Anime is #{anime}"
+  end
+
+  defh custom_command do
+    action = query_data(:commands, message.trailing)
+
+    case action do
+      nil -> nil
+      action -> reply action
+    end
   end
 
   defh hello do
@@ -158,12 +170,28 @@ defmodule TwitchKuma do
   defh ping, do: reply "Kuma~!"
 
   defh set_race(%{"raceid" => raceid}) do
-    store_data("race", raceid)
+    store_data(:main, "race", raceid)
     reply "Done! http://www.speedrunslive.com/race/?id=#{raceid}"
   end
 
   defh set_anime(%{"anime" => anime}) do
-    store_data("anime", anime)
+    store_data(:main, "anime", anime)
     reply "All set!"
+  end
+
+  defh set_custom_command(%{"command" => command, "action" => action}) do
+    store_data(:commands, "!#{command}", action)
+    reply "Alright! Type !#{command} to use."
+  end
+
+  defh delete_custom_command(%{"command" => command}) do
+    action = query_data(:commands, command)
+
+    case action do
+      nil -> reply "Command does not exist."
+      _   ->
+        delete_data(:commands, "!#{command}")
+        reply "Command !#{command} removed."
+    end
   end
 end
