@@ -4,7 +4,6 @@
 
 ## Available commands
 
-- `!anime` - that anime in the bottom right
 - `!coin` or `!flip` - flips a coin
 - `!fortune` - fortune cookie
 - `!np` - now playing music via lastfm
@@ -16,6 +15,5 @@
 ## Moderator commands
 
 - `!kuma` or `!ping` - ping/pong
-- `!setanime` - sets the anime for the `!anime` command
 - `!set :command ~action` - sets a custom command and response
 - `!del :command` - removes a custom command
