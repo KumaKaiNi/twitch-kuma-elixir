@@ -43,7 +43,6 @@ defmodule TwitchKuma do
       match "!fortune", :fortune
       match "!smug", :smug
       match "!np", :lastfm_np
-      match "!anime", :anime
       match_all :custom_command
       match ["ty kuma", "thanks kuma", "thank you kuma"], :ty_kuma
     end
@@ -54,7 +53,6 @@ defmodule TwitchKuma do
     # Mod command list
     enforce :is_mod do
       match ["!kuma", "!ping"], :ping
-      match "!setanime ~anime", :set_anime
       match "!set :command ~action", :set_custom_command
       match "!del :command", :delete_custom_command
     end
@@ -141,11 +139,6 @@ defmodule TwitchKuma do
     end
   end
 
-  defh anime do
-    anime = query_data(:main, "anime")
-    reply "Anime is #{anime}"
-  end
-
   defh custom_command do
     action = query_data(:commands, message.trailing)
 
@@ -176,14 +169,14 @@ defmodule TwitchKuma do
   # Moderator action handlers
   defh ping, do: reply "Kuma~!"
 
-  defh set_anime(%{"anime" => anime}) do
-    store_data(:main, "anime", anime)
-    reply "All set!"
-  end
-
   defh set_custom_command(%{"command" => command, "action" => action}) do
+    exists = query_data(:commands, "!#{command}")
     store_data(:commands, "!#{command}", action)
-    reply "Alright! Type !#{command} to use."
+
+    case exists do
+      nil -> reply "Alright! Type !#{command} to use."
+      _   -> reply "Done, command !#{command} updated."
+    end
   end
 
   defh delete_custom_command(%{"command" => command}) do
