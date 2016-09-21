@@ -71,7 +71,20 @@ defmodule TwitchKuma do
 
   defh local_time do
     {{_, _, _}, {hour, minute, _}} = :calendar.local_time
-    reply "It is #{hour}:#{minute} MST rekyuu's time."
+
+    h =
+      cond hour do
+        hour <= 9 -> "0#{hour}"
+        true      -> "#{hour}"
+      end
+
+    m =
+      cond minute do
+        minute <= 9 -> "0#{minute}"
+        true        -> "#{minute}"
+      end
+
+    reply "It is #{h}:#{m} MST rekyuu's time."
   end
 
   defh coin_flip, do: reply Enum.random(["Heads.", "Tails."])
