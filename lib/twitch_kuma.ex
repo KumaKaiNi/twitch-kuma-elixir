@@ -72,17 +72,15 @@ defmodule TwitchKuma do
   defh local_time do
     {{_, _, _}, {hour, minute, _}} = :calendar.local_time
 
-    h =
-      cond hour do
-        hour <= 9 -> "0#{hour}"
-        true      -> "#{hour}"
-      end
+    h = cond do
+      hour <= 9 -> "0#{hour}"
+      true      -> "#{hour}"
+    end
 
-    m =
-      cond minute do
-        minute <= 9 -> "0#{minute}"
-        true        -> "#{minute}"
-      end
+    m = cond do
+      minute <= 9 -> "0#{minute}"
+      true        -> "#{minute}"
+    end
 
     reply "It is #{h}:#{m} MST rekyuu's time."
   end
