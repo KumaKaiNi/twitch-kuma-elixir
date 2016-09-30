@@ -26,9 +26,10 @@ defmodule TwitchKuma do
     end
   end
 
-  # Enable Twitch Messaging Interface
+  # Enable Twitch Messaging Interface and whispers
   handle "001" do
     GenServer.call(Kaguya.Core, {:send, %Kaguya.Core.Message{command: "CAP", args: ["REQ"], trailing: "twitch.tv/membership"}})
+    GenServer.call(Kaguya.Core, {:send, %Kaguya.Core.Message{command: "CAP", args: ["REQ"], trailing: "twitch.tv/commands"}})
 
     Kaguya.Util.sendPM("Kuma~!", "#rekyuu_senkan")
   end
@@ -36,6 +37,7 @@ defmodule TwitchKuma do
   # Commands list
   handle "PRIVMSG" do
     enforce :rate_limit do
+      match "!help", :help
       match "!uptime", :uptime
       match "!time", :local_time
       match ["!coin", "!flip"], :coin_flip
@@ -58,7 +60,16 @@ defmodule TwitchKuma do
     end
   end
 
+  # Whisper commands
+  handle "WHISPER" do
+    match "!help", :help_whisper
+  end
+
+  defh help_whisper(%{user: user}), do: whisper(user.nick, "ok")
+
   # Command action handlers
+  defh help, do: reply "https://github.com/KumaKaiNi/twitch-kuma-elixir"
+
   defh uptime do
     url = "https://decapi.me/twitch/uptime?channel=rekyuu_senkan"
     request =  HTTPoison.get! url
