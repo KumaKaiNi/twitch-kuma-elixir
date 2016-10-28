@@ -57,6 +57,7 @@ defmodule TwitchKuma do
       match ["!kuma", "!ping"], :ping
       match "!set :command ~action", :set_custom_command
       match "!del :command", :delete_custom_command
+      match "!rand :game", :get_souls_run
     end
   end
 
@@ -209,6 +210,18 @@ defmodule TwitchKuma do
       _   ->
         delete_data(:commands, "!#{command}")
         reply "Command !#{command} removed."
+    end
+  end
+
+  defh get_souls_run(%{"game" => game}) do
+    url = "http://souls.riichi.me/api/#{game}"
+    request = HTTPoison.get!(url)
+    response = Poison.Parser.parse!((request.body), keys: :atoms)
+
+    if response.seed do
+      reply "http://souls.riichi.me/#{game}/#{response.seed}"
+    else if response.error do
+      reply "#{response.message}"
     end
   end
 end
