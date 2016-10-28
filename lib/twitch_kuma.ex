@@ -45,6 +45,7 @@ defmodule TwitchKuma do
       match "!fortune", :fortune
       match "!smug", :smug
       match "!np", :lastfm_np
+      match "!message", :souls_message
       match_all :custom_command
       match ["ty kuma", "thanks kuma", "thank you kuma"], :ty_kuma
     end
@@ -162,6 +163,14 @@ defmodule TwitchKuma do
     end
   end
 
+  defh souls_message do
+    url = "http://souls.riichi.me/api"
+    request = HTTPoison.get!(url)
+    response = Poison.Parser.parse!((request.body), keys: :atoms)
+
+    reply "#{response.message}"
+  end
+
   defh custom_command do
     action = query_data(:commands, message.trailing)
 
@@ -218,10 +227,10 @@ defmodule TwitchKuma do
     request = HTTPoison.get!(url)
     response = Poison.Parser.parse!((request.body), keys: :atoms)
 
-    if response.seed do
+    try do
       reply "http://souls.riichi.me/#{game}/#{response.seed}"
-    else if response.error do
-      reply "#{response.message}"
+    rescue
+      KeyError -> reply "#{response.message}"
     end
   end
 end
