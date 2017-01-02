@@ -42,7 +42,6 @@ defmodule TwitchKuma do
       match "!time", :local_time
       match ["!coin", "!flip"], :coin_flip
       match "!predict ~question", :prediction
-      match "!fortune", :fortune
       match "!smug", :smug
       match "!np", :lastfm_np
       match "!message", :souls_message
@@ -52,6 +51,7 @@ defmodule TwitchKuma do
 
     match ["hello", "hi", "hey", "sup"], :hello
     match ["same", "Same", "SAME"], :same
+    match ["PogChamp", "Kappa", "FrankerZ", "Kreygasm", "ShallowMallow", "BibleThump", "BowserThump", "ThinkingFaceEmoji", "NeverLucky"], :emote
 
     # Mod command list
     enforce :is_mod do
@@ -130,14 +130,6 @@ defmodule TwitchKuma do
     end
   end
 
-  defh fortune do
-    request = "http://fortunecookieapi.com/v1/cookie" |> HTTPoison.get!
-    [response] = Poison.Parser.parse!((request.body), keys: :atoms)
-    fortune = response.fortune.message
-
-    reply fortune
-  end
-
   defh smug do
     url = "https://api.imgur.com/3/album/zSNC1"
     auth = %{"Authorization" => "Client-ID #{Application.get_env(:twitch_kuma, :imgur_client_id)}"}
@@ -190,6 +182,12 @@ defmodule TwitchKuma do
   defh same do
     if one_to(25) do
       reply "same"
+    end
+  end
+
+  defh emote do
+    if one_to(25) do
+      reply message.trailing
     end
   end
 
