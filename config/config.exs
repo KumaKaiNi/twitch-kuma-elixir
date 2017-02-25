@@ -7,6 +7,6 @@ config :kaguya,
   server_ip_type: :inet,
   port: 6667,
   bot_name: "KumaKaiNi",
-  channels: ["#rekyuu_senkan"],
+  channels: ["#rekyuus"],
   use_ssl: false,
   reconnect_interval: 5

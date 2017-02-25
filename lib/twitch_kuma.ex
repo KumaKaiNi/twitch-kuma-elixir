@@ -31,7 +31,7 @@ defmodule TwitchKuma do
     GenServer.call(Kaguya.Core, {:send, %Kaguya.Core.Message{command: "CAP", args: ["REQ"], trailing: "twitch.tv/membership"}})
     GenServer.call(Kaguya.Core, {:send, %Kaguya.Core.Message{command: "CAP", args: ["REQ"], trailing: "twitch.tv/commands"}})
 
-    Kaguya.Util.sendPM("Kuma~!", "#rekyuu_senkan")
+    Kaguya.Util.sendPM("Kuma~!", "#rekyuus")
   end
 
   # Commands list
@@ -73,7 +73,7 @@ defmodule TwitchKuma do
   defh help, do: reply "https://github.com/KumaKaiNi/twitch-kuma-elixir"
 
   defh uptime do
-    url = "https://decapi.me/twitch/uptime?channel=rekyuu_senkan"
+    url = "https://decapi.me/twitch/uptime?channel=rekyuus"
     request =  HTTPoison.get! url
 
     case request.body do
