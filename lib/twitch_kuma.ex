@@ -45,6 +45,8 @@ defmodule TwitchKuma do
       match "!smug", :smug
       match "!np", :lastfm_np
       match "!message", :souls_message
+      match "!botw ~variables", :get_botw_bingo
+      match "!botw", :get_botw_bingo
       match_all :custom_command
       match ["ty kuma", "thanks kuma", "thank you kuma"], :ty_kuma
     end
@@ -124,10 +126,7 @@ defmodule TwitchKuma do
       "Very doubtful."
     ]
 
-    cond do
-      length(q |> String.split) == 0 -> nil
-      length(q |> String.split) >= 1 -> reply Enum.random(predictions)
-    end
+    reply Enum.random(predictions)
   end
 
   defh smug do
@@ -230,5 +229,21 @@ defmodule TwitchKuma do
     rescue
       KeyError -> reply "#{response.message}"
     end
+  end
+
+  defh get_botw_bingo(%{"variables" => variables}) do
+    cond do
+      length(variables |> String.split) == 1 ->
+        reply bingo_builder(variables, nil)
+      length(variables |> String.split) == 2 ->
+        [category, len] = variables |> String.split
+        reply bingo_builder(category, len)
+      true -> nil
+    end
+  end
+
+  defh get_botw_bingo do
+    seed = Float.ceil(999999 * :rand.uniform) |> round
+    reply "http://botw.site11.com/?seed=#{seed}"
   end
 end

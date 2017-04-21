@@ -6,6 +6,25 @@ defmodule TwitchKuma.Util do
   def one_to(n), do: Enum.random(1..n) <= 1
   def percent(n), do: Enum.random(1..100) <= n
 
+  def bingo_builder(category, len) do
+    seed = Float.ceil(999999 * :rand.uniform) |> round
+
+    base = case category do
+      "short" -> "http://botw.site11.com/?seed=#{seed}&mode=short"
+      "long" -> "http://botw.site11.com/?seed=#{seed}&mode=long"
+      "plateau" -> "http://botw.site11.com/gp.html?seed=#{seed}"
+      "korok" -> "http://botw.site11.com/korok.html?seed=#{seed}"
+      "shrine" -> "http://botw.site11.com/shrine.html?seed=#{seed}"
+      "comp" -> "http://botw.site11.com/comp.html?seed=#{seed}"
+      _ -> nil
+    end
+
+    case len do
+      nil -> base
+      len -> base <> "&mode=#{len}"
+    end
+  end
+
   def store_data(table, key, value) do
     file = '_db/#{table}.dets'
     {:ok, _} = :dets.open_file(table, [file: file, type: :set])
