@@ -11,6 +11,7 @@ defmodule TwitchKuma.Util do
 
     base = case category do
       "short" -> "http://botw.site11.com/?seed=#{seed}&mode=short"
+      "normal" -> "http://botw.site11.com/?seed=#{seed}"
       "long" -> "http://botw.site11.com/?seed=#{seed}&mode=long"
       "plateau" -> "http://botw.site11.com/gp.html?seed=#{seed}"
       "korok" -> "http://botw.site11.com/korok.html?seed=#{seed}"
