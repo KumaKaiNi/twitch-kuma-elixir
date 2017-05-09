@@ -10,13 +10,13 @@ defmodule TwitchKuma.Util do
     seed = Float.ceil(999999 * :rand.uniform) |> round
 
     base = case category do
-      "short" -> "http://botw.site11.com/?seed=#{seed}&mode=short"
-      "normal" -> "http://botw.site11.com/?seed=#{seed}"
-      "long" -> "http://botw.site11.com/?seed=#{seed}&mode=long"
+      "short"   -> "http://botw.site11.com/?seed=#{seed}&mode=short"
+      "normal"  -> "http://botw.site11.com/?seed=#{seed}"
+      "long"    -> "http://botw.site11.com/?seed=#{seed}&mode=long"
       "plateau" -> "http://botw.site11.com/gp.html?seed=#{seed}"
-      "korok" -> "http://botw.site11.com/korok.html?seed=#{seed}"
-      "shrine" -> "http://botw.site11.com/shrine.html?seed=#{seed}"
-      "comp" -> "http://botw.site11.com/comp.html?seed=#{seed}"
+      "korok"   -> "http://botw.site11.com/korok.html?seed=#{seed}"
+      "shrine"  -> "http://botw.site11.com/shrine.html?seed=#{seed}"
+      "comp"    -> "http://botw.site11.com/comp.html?seed=#{seed}"
       _ -> nil
     end
 
@@ -43,6 +43,21 @@ defmodule TwitchKuma.Util do
       case result do
         [{_, value}] -> value
         [] -> nil
+      end
+
+    :dets.close(table)
+    response
+  end
+
+  def query_all_data(table) do
+    file = '_db/#{table}.dets'
+    {:ok, _} = :dets.open_file(table, [file: file, type: :set])
+    result = :dets.match_object(table, {:"$1", :"$2"})
+
+    response =
+      case result do
+        [] -> nil
+        values -> values
       end
 
     :dets.close(table)

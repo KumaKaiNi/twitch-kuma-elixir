@@ -45,8 +45,10 @@ defmodule TwitchKuma do
       match "!smug", :smug
       match "!np", :lastfm_np
       match "!message", :souls_message
+      match "!souls :game", :get_souls_run
       match "!botw ~variables", :get_botw_bingo
       match "!botw", :get_botw_bingo
+      match "!quote", :get_quote
       match_all :custom_command
       match ["ty kuma", "thanks kuma", "thank you kuma"], :ty_kuma
     end
@@ -60,7 +62,8 @@ defmodule TwitchKuma do
       match ["!kuma", "!ping"], :ping
       match "!set :command ~action", :set_custom_command
       match "!del :command", :delete_custom_command
-      match "!rand :game", :get_souls_run
+      match "!addquote ~quote_text", :add_quote
+      match "!delquote :quote_id", :del_quote
     end
   end
 
@@ -69,7 +72,7 @@ defmodule TwitchKuma do
     match "!help", :help_whisper
   end
 
-  defh help_whisper(%{user: user}), do: whisper(user.nick, "ok")
+  defh help_whisper(%{user: user}), do: whisper(user.nick, "Sorry, I don't have any whisper features yet. https://github.com/KumaKaiNi/twitch-kuma-elixir")
 
   # Command action handlers
   defh help, do: reply "https://github.com/KumaKaiNi/twitch-kuma-elixir"
@@ -162,6 +165,41 @@ defmodule TwitchKuma do
     reply "#{response.message}"
   end
 
+  defh get_souls_run(%{"game" => game}) do
+    url = "http://souls.riichi.me/api/#{game}"
+    request = HTTPoison.get!(url)
+    response = Poison.Parser.parse!((request.body), keys: :atoms)
+
+    try do
+      reply "http://souls.riichi.me/#{game}/#{response.seed}"
+    rescue
+      KeyError -> reply "#{response.message}"
+    end
+  end
+
+  defh get_botw_bingo(%{"variables" => variables}) do
+    cond do
+      length(variables |> String.split) == 1 ->
+        reply bingo_builder(variables, nil)
+      length(variables |> String.split) == 2 ->
+        [category, len] = variables |> String.split
+        reply bingo_builder(category, len)
+      true -> nil
+    end
+  end
+
+  defh get_botw_bingo do
+    seed = Float.ceil(999999 * :rand.uniform) |> round
+    reply "http://botw.site11.com/?seed=#{seed}"
+  end
+
+  defh get_quote do
+    quotes = query_all_data(:quotes)
+    {quote_id, quote_text} = Enum.random(quotes)
+
+    reply "[\##{quote_id}] #{quote_text}"
+  end
+
   defh custom_command do
     action = query_data(:commands, message.trailing)
 
@@ -219,31 +257,30 @@ defmodule TwitchKuma do
     end
   end
 
-  defh get_souls_run(%{"game" => game}) do
-    url = "http://souls.riichi.me/api/#{game}"
-    request = HTTPoison.get!(url)
-    response = Poison.Parser.parse!((request.body), keys: :atoms)
-
-    try do
-      reply "http://souls.riichi.me/#{game}/#{response.seed}"
-    rescue
-      KeyError -> reply "#{response.message}"
+  defh add_quote(%{"quote_text" => quote_text}) do
+    quotes = query_all_data(:quotes)
+    IO.inspect(quotes)
+    quote_id = case quotes do
+      nil -> 1
+      _ ->
+        {quote_id, _} = List.last(quotes)
+        quote_id
     end
+
+    store_data(:quotes, quote_id, quote_text)
+    reply "Quote added! #{quote_id} quotes total."
   end
 
-  defh get_botw_bingo(%{"variables" => variables}) do
-    cond do
-      length(variables |> String.split) == 1 ->
-        reply bingo_builder(variables, nil)
-      length(variables |> String.split) == 2 ->
-        [category, len] = variables |> String.split
-        reply bingo_builder(category, len)
-      true -> nil
+  defh del_quote(%{"quote_id" => quote_id}) do
+    case quote_id |> Integer.parse do
+      {quote_id, _} ->
+        case query_data(:quotes, quote_id) do
+          nil -> reply "Quote \##{quote_id} does not exist."
+          _ ->
+            delete_data(:quotes, quote_id)
+            reply "Quote removed."
+        end
+      :error -> reply "You didn't specify an ID number."
     end
-  end
-
-  defh get_botw_bingo do
-    seed = Float.ceil(999999 * :rand.uniform) |> round
-    reply "http://botw.site11.com/?seed=#{seed}"
   end
 end
