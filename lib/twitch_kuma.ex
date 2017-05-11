@@ -264,7 +264,7 @@ defmodule TwitchKuma do
       nil -> 1
       _ ->
         {quote_id, _} = List.last(quotes)
-        quote_id
+        quote_id + 1
     end
 
     store_data(:quotes, quote_id, quote_text)
