@@ -258,7 +258,7 @@ defmodule TwitchKuma do
   end
 
   defh add_quote(%{"quote_text" => quote_text}) do
-    quotes = query_all_data(:quotes)
+    quotes = query_all_data(:quotes) |> Enum.sort
     IO.inspect(quotes)
     quote_id = case quotes do
       nil -> 1
