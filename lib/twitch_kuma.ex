@@ -48,6 +48,7 @@ defmodule TwitchKuma do
       match "!souls :game", :get_souls_run
       match "!botw ~variables", :get_botw_bingo
       match "!botw", :get_botw_bingo
+      match "!quote :quote_id", :get_quote
       match "!quote", :get_quote
       match_all :custom_command
       match ["ty kuma", "thanks kuma", "thank you kuma"], :ty_kuma
@@ -191,6 +192,13 @@ defmodule TwitchKuma do
   defh get_botw_bingo do
     seed = Float.ceil(999999 * :rand.uniform) |> round
     reply "http://botw.site11.com/?seed=#{seed}"
+  end
+
+  defh get_quote(%{"quote_id" => quote_id}) do
+    case query_data(:quotes, quote_id |> Integer.parse) do
+      nil -> reply "Quote \##{quote_id} does not exist."
+      quote_text -> reply "[\##{quote_id}] #{quote_text}"
+    end
   end
 
   defh get_quote do
