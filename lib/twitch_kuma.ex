@@ -195,9 +195,17 @@ defmodule TwitchKuma do
   end
 
   defh get_quote(%{"quote_id" => quote_id}) do
-    case query_data(:quotes, quote_id |> Integer.parse) do
-      nil -> reply "Quote \##{quote_id} does not exist."
-      quote_text -> reply "[\##{quote_id}] #{quote_text}"
+    case quote_id |> Integer.parse do
+      {quote_id, _} ->
+        case query_data(:quotes, quote_id) do
+          nil -> reply "Quote \##{quote_id} does not exist."
+          quote_text -> reply "[\##{quote_id}] #{quote_text}"
+        end
+      :error ->
+        quotes = query_all_data(:quotes)
+        {quote_id, quote_text} = Enum.random(quotes)
+
+        reply "[\##{quote_id}] #{quote_text}"
     end
   end
 
@@ -266,8 +274,11 @@ defmodule TwitchKuma do
   end
 
   defh add_quote(%{"quote_text" => quote_text}) do
-    quotes = query_all_data(:quotes) |> Enum.sort
-    IO.inspect(quotes)
+    quotes = case query_all_data(:quotes) do
+      nil -> nil
+      quotes -> quotes |> Enum.sort
+    end
+
     quote_id = case quotes do
       nil -> 1
       _ ->
