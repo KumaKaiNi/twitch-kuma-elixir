@@ -44,7 +44,7 @@ defmodule TwitchKuma do
       match "!predict ~question", :prediction
       match "!smug", :smug
       match "!np", :lastfm_np
-      match "!message", :souls_message
+      match "!guidance", :souls_message
       match "!souls :game", :get_souls_run
       match "!botw ~variables", :get_botw_bingo
       match "!botw", :get_botw_bingo
@@ -61,7 +61,7 @@ defmodule TwitchKuma do
     # Mod command list
     enforce :is_mod do
       match ["!kuma", "!ping"], :ping
-      match "!set :command ~action", :set_custom_command
+      match "!add :command ~action", :set_custom_command
       match "!del :command", :delete_custom_command
       match "!addquote ~quote_text", :add_quote
       match "!delquote :quote_id", :del_quote
@@ -83,7 +83,7 @@ defmodule TwitchKuma do
     request =  HTTPoison.get! url
 
     case request.body do
-      "Channel is not live." -> reply "Stream is not online!"
+      "rekyuus is offline" -> reply "Stream is not online!"
       time -> reply "Stream has been live for #{time}."
     end
   end
