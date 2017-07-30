@@ -2,7 +2,7 @@ defmodule TwitchKuma do
   use Kaguya.Module, "main"
   import TwitchKuma.Util
 
-  unless File.exists?("/var/www/_db"), do: File.mkdir("/var/www/_db")
+  unless File.exists?("/home/bowan/bots/_db"), do: File.mkdir("/home/bowan/bots/_db")
 
   # Validator for mods
   def is_mod(%{user: %{nick: nick}, args: [chan]}) do
