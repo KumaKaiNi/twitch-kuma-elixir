@@ -36,6 +36,8 @@ defmodule TwitchKuma do
 
   # Commands list
   handle "PRIVMSG" do
+    match_all :logger
+
     enforce :rate_limit do
       match "!help", :help
       match "!uptime", :uptime
@@ -56,7 +58,7 @@ defmodule TwitchKuma do
 
     match ["hello", "hi", "hey", "sup"], :hello
     match ["same", "Same", "SAME"], :same
-    match ["PogChamp", "Kappa", "FrankerZ", "Kreygasm", "ShallowMallow", "BibleThump", "BowserThump", "ThinkingFaceEmoji", "NeverLucky"], :emote
+    match emotes, :emote
 
     # Mod command list
     enforce :is_mod do
@@ -74,6 +76,12 @@ defmodule TwitchKuma do
   end
 
   defh help_whisper(%{user: user}), do: whisper(user.nick, "Sorry, I don't have any whisper features yet. https://github.com/KumaKaiNi/twitch-kuma-elixir")
+
+  # Chat logging
+  defh logger do
+    logfile = "/home/bowan/bots/_db/twitch.log"
+    File.write!(logfile, message.trailing <> "\n", [:append])
+  end
 
   # Command action handlers
   defh help, do: reply "https://github.com/KumaKaiNi/twitch-kuma-elixir"

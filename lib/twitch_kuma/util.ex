@@ -72,4 +72,28 @@ defmodule TwitchKuma.Util do
     :dets.close(table)
     response
   end
+
+  # Emote list
+  def emotes do
+    [
+      "PogChamp",
+      "Kappa",
+      "FrankerZ",
+      "Kreygasm",
+      "BibleThump",
+      "PunOko",
+      "KonCha",
+      "TehePelo",
+      "DontAtMe",
+      "Exploded",
+      "FeelsAkariMan",
+      "IffyLewd",
+      "KuNai",
+      "OmegaKuNai",
+      "OMEGALUL",
+      "MegaLUL",
+      "LUL",
+      "servSugoi"
+    ]
+  end
 end
