@@ -58,7 +58,7 @@ defmodule TwitchKuma do
 
     match ["hello", "hi", "hey", "sup"], :hello
     match ["same", "Same", "SAME"], :same
-    match emotes, :emote
+    match ["PogChamp", "Kappa", "FrankerZ", "Kreygasm", "BibleThump", "PunOko", "KonCha", "TehePelo", "DontAtMe", "Exploded", "FeelsAkariMan", "IffyLewd", "KuNai", "OmegaKuNai", "OMEGALUL", "MegaLUL", "LUL", "servSugoi"], :emote
 
     # Mod command list
     enforce :is_mod do
