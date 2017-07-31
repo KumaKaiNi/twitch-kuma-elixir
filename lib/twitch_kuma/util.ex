@@ -72,4 +72,11 @@ defmodule TwitchKuma.Util do
     :dets.close(table)
     response
   end
+
+  def log_to_file(msg) do
+    logfile = "/home/bowan/bots/_db/twitch.log"
+    time = DateTime.utc_now |> DateTime.to_iso8601
+    logline = "[#{time}] KumaKaiNi: #{msg}\n"
+    File.write!(logfile, logline, [:append])
+  end
 end

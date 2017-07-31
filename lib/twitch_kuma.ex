@@ -1,6 +1,6 @@
 defmodule TwitchKuma do
   use Kaguya.Module, "main"
-  import TwitchKuma.Util
+  use TwitchKuma.Module
 
   unless File.exists?("/home/bowan/bots/_db"), do: File.mkdir("/home/bowan/bots/_db")
 
@@ -80,19 +80,21 @@ defmodule TwitchKuma do
   # Chat logging
   defh logger do
     logfile = "/home/bowan/bots/_db/twitch.log"
-    File.write!(logfile, message.trailing <> "\n", [:append])
+    time = DateTime.utc_now |> DateTime.to_iso8601
+    logline = "[#{time}] #{message.user.nick}: #{message.trailing}\n"
+    File.write!(logfile, logline, [:append])
   end
 
   # Command action handlers
-  defh help, do: reply "https://github.com/KumaKaiNi/twitch-kuma-elixir"
+  defh help, do: replylog "https://github.com/KumaKaiNi/twitch-kuma-elixir"
 
   defh uptime do
     url = "https://decapi.me/twitch/uptime?channel=rekyuus"
     request =  HTTPoison.get! url
 
     case request.body do
-      "rekyuus is offline" -> reply "Stream is not online!"
-      time -> reply "Stream has been live for #{time}."
+      "rekyuus is offline" -> replylog "Stream is not online!"
+      time -> replylog "Stream has been live for #{time}."
     end
   end
 
@@ -109,10 +111,10 @@ defmodule TwitchKuma do
       true        -> "#{minute}"
     end
 
-    reply "It is #{h}:#{m} MST rekyuu's time."
+    replylog "It is #{h}:#{m} MST rekyuu's time."
   end
 
-  defh coin_flip, do: reply Enum.random(["Heads.", "Tails."])
+  defh coin_flip, do: replylog Enum.random(["Heads.", "Tails."])
 
   defh prediction(%{"question" => q}) do
     predictions = [
@@ -132,13 +134,13 @@ defmodule TwitchKuma do
       "Cannot predict now.",
       "Concentrate and ask again.",
       "Don't count on it.",
-      "My reply is no.",
+      "My replylog is no.",
       "My sources say no.",
       "Outlook not so good.",
       "Very doubtful."
     ]
 
-    reply Enum.random(predictions)
+    replylog Enum.random(predictions)
   end
 
   defh smug do
@@ -149,7 +151,7 @@ defmodule TwitchKuma do
     response = Poison.Parser.parse!((request.body), keys: :atoms)
     result = response.data.images |> Enum.random
 
-    reply result.link
+    replylog result.link
   end
 
   defh lastfm_np do
@@ -162,7 +164,7 @@ defmodule TwitchKuma do
 
     case List.first(track) do
       nil -> nil
-      song -> reply "#{song.artist.'#text'} - #{song.name} [#{song.album.'#text'}]"
+      song -> replylog "#{song.artist.'#text'} - #{song.name} [#{song.album.'#text'}]"
     end
   end
 
@@ -171,7 +173,7 @@ defmodule TwitchKuma do
     request = HTTPoison.get!(url)
     response = Poison.Parser.parse!((request.body), keys: :atoms)
 
-    reply "#{response.message}"
+    replylog "#{response.message}"
   end
 
   defh get_souls_run(%{"game" => game}) do
@@ -180,40 +182,40 @@ defmodule TwitchKuma do
     response = Poison.Parser.parse!((request.body), keys: :atoms)
 
     try do
-      reply "http://souls.riichi.me/#{game}/#{response.seed}"
+      replylog "http://souls.riichi.me/#{game}/#{response.seed}"
     rescue
-      KeyError -> reply "#{response.message}"
+      KeyError -> replylog "#{response.message}"
     end
   end
 
   defh get_botw_bingo(%{"variables" => variables}) do
     cond do
       length(variables |> String.split) == 1 ->
-        reply bingo_builder(variables, nil)
+        replylog bingo_builder(variables, nil)
       length(variables |> String.split) == 2 ->
         [category, len] = variables |> String.split
-        reply bingo_builder(category, len)
+        replylog bingo_builder(category, len)
       true -> nil
     end
   end
 
   defh get_botw_bingo do
     seed = Float.ceil(999999 * :rand.uniform) |> round
-    reply "http://botw.site11.com/?seed=#{seed}"
+    replylog "http://botw.site11.com/?seed=#{seed}"
   end
 
   defh get_quote(%{"quote_id" => quote_id}) do
     case quote_id |> Integer.parse do
       {quote_id, _} ->
         case query_data(:quotes, quote_id) do
-          nil -> reply "Quote \##{quote_id} does not exist."
-          quote_text -> reply "[\##{quote_id}] #{quote_text}"
+          nil -> replylog "Quote \##{quote_id} does not exist."
+          quote_text -> replylog "[\##{quote_id}] #{quote_text}"
         end
       :error ->
         quotes = query_all_data(:quotes)
         {quote_id, quote_text} = Enum.random(quotes)
 
-        reply "[\##{quote_id}] #{quote_text}"
+        replylog "[\##{quote_id}] #{quote_text}"
     end
   end
 
@@ -221,7 +223,7 @@ defmodule TwitchKuma do
     quotes = query_all_data(:quotes)
     {quote_id, quote_text} = Enum.random(quotes)
 
-    reply "[\##{quote_id}] #{quote_text}"
+    replylog "[\##{quote_id}] #{quote_text}"
   end
 
   defh custom_command do
@@ -229,44 +231,44 @@ defmodule TwitchKuma do
 
     case action do
       nil -> nil
-      action -> reply action
+      action -> replylog action
     end
   end
 
   defh hello do
     replies = ["sup loser", "yo", "ay", "hi", "wassup"]
     if one_to(25) do
-      reply Enum.random(replies)
+      replylog Enum.random(replies)
     end
   end
 
   defh same do
     if one_to(25) do
-      reply "same"
+      replylog "same"
     end
   end
 
   defh emote do
     if one_to(25) do
-      reply message.trailing
+      replylog message.trailing
     end
   end
 
   defh ty_kuma do
     replies = ["np", "don't mention it", "anytime", "sure thing", "ye whateva"]
-    reply Enum.random(replies)
+    replylog Enum.random(replies)
   end
 
   # Moderator action handlers
-  defh ping, do: reply "Kuma~!"
+  defh ping, do: replylog "Kuma~!"
 
   defh set_custom_command(%{"command" => command, "action" => action}) do
     exists = query_data(:commands, "!#{command}")
     store_data(:commands, "!#{command}", action)
 
     case exists do
-      nil -> reply "Alright! Type !#{command} to use."
-      _   -> reply "Done, command !#{command} updated."
+      nil -> replylog "Alright! Type !#{command} to use."
+      _   -> replylog "Done, command !#{command} updated."
     end
   end
 
@@ -274,10 +276,10 @@ defmodule TwitchKuma do
     action = query_data(:commands, "!#{command}")
 
     case action do
-      nil -> reply "Command does not exist."
+      nil -> replylog "Command does not exist."
       _   ->
         delete_data(:commands, "!#{command}")
-        reply "Command !#{command} removed."
+        replylog "Command !#{command} removed."
     end
   end
 
@@ -295,19 +297,19 @@ defmodule TwitchKuma do
     end
 
     store_data(:quotes, quote_id, quote_text)
-    reply "Quote added! #{quote_id} quotes total."
+    replylog "Quote added! #{quote_id} quotes total."
   end
 
   defh del_quote(%{"quote_id" => quote_id}) do
     case quote_id |> Integer.parse do
       {quote_id, _} ->
         case query_data(:quotes, quote_id) do
-          nil -> reply "Quote \##{quote_id} does not exist."
+          nil -> replylog "Quote \##{quote_id} does not exist."
           _ ->
             delete_data(:quotes, quote_id)
-            reply "Quote removed."
+            replylog "Quote removed."
         end
-      :error -> reply "You didn't specify an ID number."
+      :error -> replylog "You didn't specify an ID number."
     end
   end
 end
