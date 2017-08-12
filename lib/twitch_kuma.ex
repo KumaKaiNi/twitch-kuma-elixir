@@ -94,7 +94,7 @@ defmodule TwitchKuma do
     match "!coins", :coins
   end
 
-  defh help_whisper(%{user: user}), do: whisper(user.nick, "Sorry, I don't have any whisper features yet. https://github.com/KumaKaiNi/twitch-kuma-elixir")
+  defh help_whisper(%{user: user}), do: whisper "Sorry, I don't have any whisper features yet. https://github.com/KumaKaiNi/twitch-kuma-elixir"
 
   # Chat logging
   defh logger do
@@ -126,12 +126,13 @@ defmodule TwitchKuma do
       bank -> bank
     end
 
-    reply "You have #{amount} coins."
+    whisper "You have #{amount} coins."
   end
 
   # Administrative Casino Commands
   defh set_multiplier(%{"multiplier" => multiplier}) do
     store_data(:casino, :multiplier, multiplier)
+    reply "Bonus of x#{multiplier} set!"
   end
 
   # Command action handlers

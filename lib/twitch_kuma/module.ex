@@ -12,4 +12,10 @@ defmodule TwitchKuma.Module do
       reply unquote(response)
     end
   end
+
+  defmacro whisper(response) do
+    quote do
+      whisper var!(user.nick), unquote(response)
+    end
+  end
 end
