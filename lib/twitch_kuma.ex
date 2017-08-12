@@ -16,6 +16,18 @@ defmodule TwitchKuma do
     end
   end
 
+  # Validator for rekyuu
+  def rekyuu(%{user: %{nick: nick}, args: [chan]}) do
+    pid = Kaguya.Util.getChanPid(chan)
+    user = GenServer.call(pid, {:get_user, nick})
+
+    if user == nil do
+      false
+    else
+      user == "rekyuus"
+    end
+  end
+
   # Validator for rate limiting
   def rate_limit(msg) do
     {rate, _} = ExRated.check_rate(msg.trailing, 10_000, 1)
@@ -68,11 +80,18 @@ defmodule TwitchKuma do
       match "!addquote ~quote_text", :add_quote
       match "!delquote :quote_id", :del_quote
     end
+
+    enforce :rekyuu do
+      match "!bonus :multiplier", :set_multiplier
+    end
+
+    match_all :payout
   end
 
   # Whisper commands
   handle "WHISPER" do
     match "!help", :help_whisper
+    match "!coins", :coins
   end
 
   defh help_whisper(%{user: user}), do: whisper(user.nick, "Sorry, I don't have any whisper features yet. https://github.com/KumaKaiNi/twitch-kuma-elixir")
@@ -83,6 +102,36 @@ defmodule TwitchKuma do
     time = DateTime.utc_now |> DateTime.to_iso8601
     logline = "[#{time}] #{message.user.nick}: #{message.trailing}\n"
     File.write!(logfile, logline, [:append])
+  end
+
+  # Casino Stuff
+  defh payout do
+    multiplier = query_data(:casino, :multiplier)
+    bank = query_data(:bank, message.user.nick)
+    earnings = String.length(message.trailing) * multiplier
+
+    coins = case bank do
+      nil -> earnings
+      bank -> bank + earnings
+    end
+
+    store_data(:bank, message.user.nick, coins)
+  end
+
+  defh coins do
+    bank = query_data(:bank, message.user.nick)
+
+    amount = case coins do
+      nil -> "no"
+      coins -> coins
+    end
+
+    reply "You have #{amount} coins."
+  end
+
+  # Administrative Casino Commands
+  defh set_multiplier(%{"multiplier" => multiplier}) do
+    store_data(:casino, :multiplier, multiplier)
   end
 
   # Command action handlers
