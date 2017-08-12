@@ -94,7 +94,7 @@ defmodule TwitchKuma do
     match "!coins", :coins
   end
 
-  defh help_whisper(%{user: user}), do: whisper "Sorry, I don't have any whisper features yet. https://github.com/KumaKaiNi/twitch-kuma-elixir"
+  defh help_whisper, do: whisper "Sorry, I don't have any whisper features yet. https://github.com/KumaKaiNi/twitch-kuma-elixir"
 
   # Chat logging
   defh logger do
