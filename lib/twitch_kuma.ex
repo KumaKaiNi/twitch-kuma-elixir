@@ -106,16 +106,20 @@ defmodule TwitchKuma do
 
   # Casino Stuff
   defh payout do
-    multiplier = query_data(:casino, :multiplier)
-    bank = query_data(:bank, message.user.nick)
-    earnings = String.length(message.trailing) * multiplier
+    case String.first(message.trailing) do
+      "!" -> nil
+      _   ->
+        multiplier = query_data(:casino, :multiplier)
+        bank = query_data(:bank, message.user.nick)
+        earnings = String.length(message.trailing) * multiplier
 
-    coins = case bank do
-      nil -> earnings
-      bank -> bank + earnings
+        coins = case bank do
+          nil -> earnings
+          bank -> bank + earnings
+        end
+
+        store_data(:bank, message.user.nick, coins)
     end
-
-    store_data(:bank, message.user.nick, coins)
   end
 
   defh coins do
