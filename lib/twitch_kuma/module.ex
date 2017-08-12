@@ -15,7 +15,7 @@ defmodule TwitchKuma.Module do
 
   defmacro whisper(response) do
     quote do
-      whisper var!(message.user.nick), unquote(response)
+      Kaguya.Util.sendPM("/w #{var!(message).user.nick} #{unquote(response)}", "#jtv")
     end
   end
 end
