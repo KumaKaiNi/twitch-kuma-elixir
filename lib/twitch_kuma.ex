@@ -121,9 +121,9 @@ defmodule TwitchKuma do
   defh coins do
     bank = query_data(:bank, message.user.nick)
 
-    amount = case coins do
+    amount = case bank do
       nil -> "no"
-      coins -> coins
+      bank -> bank
     end
 
     reply "You have #{amount} coins."
