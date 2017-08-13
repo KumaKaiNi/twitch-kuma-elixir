@@ -211,7 +211,7 @@ defmodule TwitchKuma do
                     store_data(:bank, message.user.nick, bank - bet)
 
                     kuma = query_data(:bank, "kumakaini")
-                    store_data(:bank, "kumakaini", bank + bet)
+                    store_data(:bank, "kumakaini", kuma + bet)
 
                     whisper "Sorry, you didn't win anything."
                   bonus ->
