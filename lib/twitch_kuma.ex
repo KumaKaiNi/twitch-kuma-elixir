@@ -179,7 +179,7 @@ defmodule TwitchKuma do
 
   defh get_jackpot do
     jackpot = query_data(:bank, "kumakaini")
-    replylog "There is currently #{jackpot} coins in the jackpot."
+    replylog "There are #{jackpot} coins in the jackpot."
   end
 
   defh slot_machine(%{"bet" => bet}) do
