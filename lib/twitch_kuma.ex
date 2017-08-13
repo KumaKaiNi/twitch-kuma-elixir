@@ -17,7 +17,7 @@ defmodule TwitchKuma do
   end
 
   # Validator for rekyuu
-  def rekyuu(%{user: %{nick: nick}) do
+  def rekyuu(%{user: %{nick: nick}}) do
     nick == "rekyuus"
   end
 
