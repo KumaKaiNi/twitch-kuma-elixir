@@ -120,24 +120,28 @@ defmodule TwitchKuma do
     current_time = DateTime.utc_now |> DateTime.to_unix
     viewers = query_all_data(:viewers)
 
-    case request.body do
-      "rekyuus is offline" ->
-        for viewer <- viewers do
-          {user, join_time} = viewer
-          total_time = current_time - join_time
-          payout = (total_time / 60) * wage
+    case viewers do
+      nil -> nil
+      viewers ->
+        case request.body do
+          "rekyuus is offline" ->
+            for viewer <- viewers do
+              {user, join_time} = viewer
+              total_time = current_time - join_time
+              payout = (total_time / 60) * wage
 
-          pay_user(user, round(payout))
-          delete_data(:viewers, user)
-        end
-      _ ->
-        for viewer <- viewers do
-          {user, join_time} = viewer
-          total_time = current_time - join_time
-          payout = (total_time / 60) * wage
+              pay_user(user, round(payout))
+              delete_data(:viewers, user)
+            end
+          _ ->
+            for viewer <- viewers do
+              {user, join_time} = viewer
+              total_time = current_time - join_time
+              payout = (total_time / 60) * wage
 
-          pay_user(user, round(payout))
-          store_data(:viewers, user, current_time)
+              pay_user(user, round(payout))
+              store_data(:viewers, user, current_time)
+            end
         end
     end
   end
