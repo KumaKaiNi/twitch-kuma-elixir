@@ -177,41 +177,47 @@ defmodule TwitchKuma do
   end
 
   defh slot_machine(%{"bet" => bet}) do
-    cond do
-      bet > 25  -> whisper "You must bet between 1 and 25 coins."
-      bet < 1   -> whisper "You must bet between 1 and 25 coins."
-      true ->
-        bank = query_data(:bank, message.user.nick)
+    bet = bet |> Integer.parse
 
+    case bet do
+      {bet, _} ->
         cond do
-          bank < bet -> whisper "You do not have enough coins."
+          bet > 25  -> whisper "You must bet between 1 and 25 coins."
+          bet < 1   -> whisper "You must bet between 1 and 25 coins."
           true ->
-            reel = ["⚓", "💎", "🍋", "🍊", "🍒", "🌸"]
+            bank = query_data(:bank, message.user.nick)
 
-            {col1, col2, col3} = {Enum.random(reel), Enum.random(reel), Enum.random(reel)}
+            cond do
+              bank < bet -> whisper "You do not have enough coins."
+              true ->
+                reel = ["⚓", "💎", "🍋", "🍊", "🍒", "🌸"]
 
-            bonus = case {col1, col2, col3} do
-              {"🌸", "🌸", _}    -> 1
-              {"🌸", "🌸", "💎"} -> 2
-              {"🍒", "🍒", "🍒"} -> 4
-              {"🍊", "🍊", "🍊"} -> 6
-              {"🍋", "🍋", "🍋"} -> 8
-              {"⚓", "⚓", "⚓"} -> 10
-              _ -> 0
-            end
+                {col1, col2, col3} = {Enum.random(reel), Enum.random(reel), Enum.random(reel)}
 
-            whisper "#{col1} #{col2} #{col3}"
+                bonus = case {col1, col2, col3} do
+                  {"🌸", "🌸", _}    -> 1
+                  {"🌸", "🌸", "💎"} -> 2
+                  {"🍒", "🍒", "🍒"} -> 4
+                  {"🍊", "🍊", "🍊"} -> 6
+                  {"🍋", "🍋", "🍋"} -> 8
+                  {"⚓", "⚓", "⚓"} -> 10
+                  _ -> 0
+                end
 
-            case bonus do
-              0 ->
-                store_data(:bank, message.user.nick, bank - bet)
-                whisper "Sorry, you didn't win anything."
-              bonus ->
-                payout = bet * bonus
-                store_data(:bank, message.user.nick, bank + payout)
-                whisper "Congrats, you won #{payout} coins!"
+                whisper "#{col1} #{col2} #{col3}"
+
+                case bonus do
+                  0 ->
+                    store_data(:bank, message.user.nick, bank - bet)
+                    whisper "Sorry, you didn't win anything."
+                  bonus ->
+                    payout = bet * bonus
+                    store_data(:bank, message.user.nick, bank + payout)
+                    whisper "Congrats, you won #{payout} coins!"
+                end
             end
         end
+      :error -> whisper "Usage: !slots <bet>, where <bet> is a number between 1 and 25."
     end
   end
 
