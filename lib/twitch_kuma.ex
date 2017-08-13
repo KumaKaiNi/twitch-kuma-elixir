@@ -209,6 +209,10 @@ defmodule TwitchKuma do
                 case bonus do
                   0 ->
                     store_data(:bank, message.user.nick, bank - bet)
+
+                    kuma = query_data(:bank, "kumakaini")
+                    store_data(:bank, "kumakaini", bank + bet)
+
                     whisper "Sorry, you didn't win anything."
                   bonus ->
                     payout = bet * bonus
