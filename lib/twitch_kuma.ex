@@ -86,6 +86,7 @@ defmodule TwitchKuma do
   handle "WHISPER" do
     match "!help", :help_whisper
     match "!coins", :coins
+    match "!slots :bet", :slot_machine
   end
 
   # Payout helper for viewing
@@ -173,6 +174,45 @@ defmodule TwitchKuma do
     end
 
     whisper "You have #{amount} coins."
+  end
+
+  defh slot_machine(%{bet => "bet"}) do
+    cond do
+      bet > 25  -> whisper "You must bet between 1 and 25 coins."
+      bet < 1   -> whisper "You must bet between 1 and 25 coins."
+      true ->
+        bank = query_data(:bank, message.user.nick)
+
+        cond do
+          bank < bet -> whisper "You do not have enough coins."
+          true ->
+            reel = ["⚓", "💎", "🍋", "🍊", "🍒", "🌸"]
+
+            {col1, col2, col3} = {Enum.random(reel), Enum.random(reel), Enum.random(reel)}
+
+            bonus = case {col1, col2, col3} do
+              {"🌸", "🌸", _}    -> 1
+              {"🌸", "🌸", "💎"} -> 2
+              {"🍒", "🍒", "🍒"} -> 4
+              {"🍊", "🍊", "🍊"} -> 6
+              {"🍋", "🍋", "🍋"} -> 8
+              {"⚓", "⚓", "⚓"} -> 10
+              _ -> 0
+            end
+
+            whisper "#{col1} #{col2} #{col3}"
+
+            case bonus do
+              0 ->
+                store_data(:bank, message.user.nick, bank - bet)
+                whisper "Sorry, you didn't win anything."
+              bonus ->
+                payout = bet * bonus
+                store_data(:bank, message.user.nick, bank + payout)
+                whisper "Congrats, you won #{payout} coins!"
+            end
+        end
+    end
   end
 
   # Administrative Casino Commands
