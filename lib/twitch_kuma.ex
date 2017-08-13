@@ -85,7 +85,6 @@ defmodule TwitchKuma do
 
   # Whisper commands
   handle "WHISPER" do
-    match "!help", :help_whisper
     match "!coins", :coins
     match "!slots :bet", :slot_machine
   end
@@ -148,8 +147,6 @@ defmodule TwitchKuma do
     end
   end
 
-  defh help_whisper, do: whisper "Sorry, I don't have any whisper features yet. https://github.com/KumaKaiNi/twitch-kuma-elixir"
-
   # Chat logging
   defh logger do
     logfile = "/home/bowan/bots/_db/twitch.log"
@@ -162,7 +159,7 @@ defmodule TwitchKuma do
   defh payout do
     case String.first(message.trailing) do
       "!" -> nil
-      _   -> pay_user(message.user.nick, String.length(message.trailing))
+      _   -> pay_user(message.user.nick, 1)
     end
   end
 
