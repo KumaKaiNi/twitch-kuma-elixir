@@ -17,8 +17,8 @@ defmodule TwitchKuma do
   end
 
   # Validator for rekyuu
-  def rekyuu do
-    message.user.nick == "rekyuus"
+  def rekyuu(%{user: %{nick: nick}) do
+    nick == "rekyuus"
   end
 
   # Validator for rate limiting
