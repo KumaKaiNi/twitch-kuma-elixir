@@ -176,7 +176,7 @@ defmodule TwitchKuma do
     whisper "You have #{amount} coins."
   end
 
-  defh slot_machine(%{bet => "bet"}) do
+  defh slot_machine(%{"bet" => bet}) do
     cond do
       bet > 25  -> whisper "You must bet between 1 and 25 coins."
       bet < 1   -> whisper "You must bet between 1 and 25 coins."
