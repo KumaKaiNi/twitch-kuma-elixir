@@ -17,15 +17,8 @@ defmodule TwitchKuma do
   end
 
   # Validator for rekyuu
-  def rekyuu(%{user: %{nick: nick}, args: [chan]}) do
-    pid = Kaguya.Util.getChanPid(chan)
-    user = GenServer.call(pid, {:get_user, nick})
-
-    if user == nil do
-      false
-    else
-      user == "rekyuus"
-    end
+  def rekyuu do
+    message.user.nick == "rekyuus"
   end
 
   # Validator for rate limiting
@@ -83,7 +76,7 @@ defmodule TwitchKuma do
 
     enforce :rekyuu do
       match "!wage :multiplier", :set_wage
-      match "!bonus :multiplier", :set_multiplier
+      match "!bonus :multiplier", :set_bonus
     end
 
     match_all :payout
@@ -179,7 +172,7 @@ defmodule TwitchKuma do
   end
 
   # Administrative Casino Commands
-  defh set_multiplier(%{"multiplier" => multiplier}) do
+  defh set_bonus(%{"multiplier" => multiplier}) do
     store_data(:casino, :multiplier, multiplier)
     reply "Bonus of x#{multiplier} set!"
   end
