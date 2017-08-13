@@ -4,6 +4,19 @@ defmodule TwitchKuma.Util do
   def one_to(n), do: Enum.random(1..n) <= 1
   def percent(n), do: Enum.random(1..100) <= n
 
+  def pay_user(user, n) do
+    multiplier = query_data(:casino, :multiplier)
+    bank = query_data(:bank, user)
+    earnings = n * multiplier
+
+    coins = case bank do
+      nil -> earnings
+      bank -> bank + earnings
+    end
+
+    store_data(:bank, user, coins)
+  end
+
   def bingo_builder(category, len) do
     seed = Float.ceil(999999 * :rand.uniform) |> round
 

@@ -82,6 +82,7 @@ defmodule TwitchKuma do
     end
 
     enforce :rekyuu do
+      match "!wage :multiplier", :set_wage
       match "!bonus :multiplier", :set_multiplier
     end
 
@@ -92,6 +93,60 @@ defmodule TwitchKuma do
   handle "WHISPER" do
     match "!help", :help_whisper
     match "!coins", :coins
+  end
+
+  # Payout helper for viewing
+  handle "JOIN" do
+    url = "https://decapi.me/twitch/uptime?channel=rekyuus"
+    request =  HTTPoison.get! url
+
+    case request.body do
+      "rekyuus is offline" -> nil
+      _ ->
+        current_time = DateTime.utc_now |> DateTime.to_unix
+        store_data(:viewers, message.user.nick, current_time)
+    end
+  end
+
+  handle "PART" do
+    wage = query_data(:casino, :wage)
+    join_time = query_data(:viewers, message.user.nick)
+    current_time = DateTime.utc_now |> DateTime.to_unix
+    total_time = current_time - join_time
+    payout = (total_time / 60) * wage
+
+    pay_user(message.user.nick, round(payout))
+    delete_data(:viewers, message.user.nick)
+  end
+
+  handle "PING" do
+    url = "https://decapi.me/twitch/uptime?channel=rekyuus"
+    request =  HTTPoison.get! url
+
+    wage = query_data(:casino, :wage)
+    current_time = DateTime.utc_now |> DateTime.to_unix
+    viewers = query_all_data(:viewers)
+
+    case request.body do
+      "rekyuus is offline" ->
+        for viewer <- viewers do
+          {user, join_time} = viewer
+          total_time = current_time - join_time
+          payout = (total_time / 60) * wage
+
+          pay_user(user, round(payout))
+          delete_data(:viewers, user)
+        end
+      _ ->
+        for viewer <- viewers do
+          {user, join_time} = viewer
+          total_time = current_time - join_time
+          payout = (total_time / 60) * wage
+
+          pay_user(user, round(payout))
+          store_data(:viewers, user, current_time)
+        end
+    end
   end
 
   defh help_whisper, do: whisper "Sorry, I don't have any whisper features yet. https://github.com/KumaKaiNi/twitch-kuma-elixir"
@@ -108,17 +163,7 @@ defmodule TwitchKuma do
   defh payout do
     case String.first(message.trailing) do
       "!" -> nil
-      _   ->
-        multiplier = query_data(:casino, :multiplier)
-        bank = query_data(:bank, message.user.nick)
-        earnings = String.length(message.trailing) * multiplier
-
-        coins = case bank do
-          nil -> earnings
-          bank -> bank + earnings
-        end
-
-        store_data(:bank, message.user.nick, coins)
+      _   -> pay_user(message.user.nick, String.length(message.trailing))
     end
   end
 
@@ -137,6 +182,11 @@ defmodule TwitchKuma do
   defh set_multiplier(%{"multiplier" => multiplier}) do
     store_data(:casino, :multiplier, multiplier)
     reply "Bonus of x#{multiplier} set!"
+  end
+
+  defh set_wage(%{"multiplier" => multiplier}) do
+    store_data(:casino, :wage, multiplier)
+    reply "Wage of #{multiplier} coins per minute set!"
   end
 
   # Command action handlers
