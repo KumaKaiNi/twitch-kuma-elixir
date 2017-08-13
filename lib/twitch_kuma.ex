@@ -76,7 +76,8 @@ defmodule TwitchKuma do
     end
 
     enforce :rekyuu do
-      match "!wage :multiplier", :set_wage
+      match "!mincoins :multiplier", :set_rate_per_minute
+      match "!msgcoins :multiplier", :set_rate_per_message
       match "!bonus :multiplier", :set_bonus
     end
 
@@ -103,11 +104,11 @@ defmodule TwitchKuma do
   end
 
   handle "PART" do
-    wage = query_data(:casino, :wage)
+    rate_per_minute = query_data(:casino, :rate_per_minute)
     join_time = query_data(:viewers, message.user.nick)
     current_time = DateTime.utc_now |> DateTime.to_unix
     total_time = current_time - join_time
-    payout = (total_time / 60) * wage
+    payout = (total_time / 60) * rate_per_minute
 
     pay_user(message.user.nick, round(payout))
     delete_data(:viewers, message.user.nick)
@@ -117,7 +118,7 @@ defmodule TwitchKuma do
     url = "https://decapi.me/twitch/uptime?channel=rekyuus"
     request =  HTTPoison.get! url
 
-    wage = query_data(:casino, :wage)
+    rate_per_minute = query_data(:casino, :rate_per_minute)
     current_time = DateTime.utc_now |> DateTime.to_unix
     viewers = query_all_data(:viewers)
 
@@ -129,7 +130,7 @@ defmodule TwitchKuma do
             for viewer <- viewers do
               {user, join_time} = viewer
               total_time = current_time - join_time
-              payout = (total_time / 60) * wage
+              payout = (total_time / 60) * rate_per_minute
 
               pay_user(user, round(payout))
               delete_data(:viewers, user)
@@ -138,7 +139,7 @@ defmodule TwitchKuma do
             for viewer <- viewers do
               {user, join_time} = viewer
               total_time = current_time - join_time
-              payout = (total_time / 60) * wage
+              payout = (total_time / 60) * rate_per_minute
 
               pay_user(user, round(payout))
               store_data(:viewers, user, current_time)
@@ -157,9 +158,11 @@ defmodule TwitchKuma do
 
   # Casino Stuff
   defh payout do
+    rate_per_message = query_data(:casino, :rate_per_message)
+
     case String.first(message.trailing) do
       "!" -> nil
-      _   -> pay_user(message.user.nick, 1)
+      _   -> pay_user(message.user.nick, rate_per_message)
     end
   end
 
@@ -230,12 +233,17 @@ defmodule TwitchKuma do
 
   # Administrative Casino Commands
   defh set_bonus(%{"multiplier" => multiplier}) do
-    store_data(:casino, :multiplier, multiplier |> String.to_integer)
+    store_data(:casino, :bonus, multiplier |> String.to_integer)
     reply "Bonus of x#{multiplier} set!"
   end
 
-  defh set_wage(%{"multiplier" => multiplier}) do
-    store_data(:casino, :wage, multiplier |> String.to_integer)
+  defh set_rate_per_minute(%{"multiplier" => multiplier}) do
+    store_data(:casino, :rate_per_minute, multiplier |> String.to_integer)
+    reply "Wage of #{multiplier} coins per minute set!"
+  end
+
+  defh set_rate_per_message(%{"multiplier" => multiplier}) do
+    store_data(:casino, :rate_per_message, multiplier |> String.to_integer)
     reply "Wage of #{multiplier} coins per minute set!"
   end
 

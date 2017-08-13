@@ -5,9 +5,9 @@ defmodule TwitchKuma.Util do
   def percent(n), do: Enum.random(1..100) <= n
 
   def pay_user(user, n) do
-    multiplier = query_data(:casino, :multiplier)
+    bonus = query_data(:casino, :bonus)
     bank = query_data(:bank, user)
-    earnings = n * multiplier
+    earnings = n * bonus
 
     coins = case bank do
       nil -> earnings
