@@ -234,17 +234,17 @@ defmodule TwitchKuma do
   # Administrative Casino Commands
   defh set_bonus(%{"multiplier" => multiplier}) do
     store_data(:casino, :bonus, multiplier |> String.to_integer)
-    reply "Bonus of x#{multiplier} set!"
+    reply "Bonus multiplier of x#{multiplier} set!"
   end
 
   defh set_rate_per_minute(%{"multiplier" => multiplier}) do
     store_data(:casino, :rate_per_minute, multiplier |> String.to_integer)
-    reply "Wage of #{multiplier} coins per minute set!"
+    reply "Done, users will earn #{multiplier} coins per minute."
   end
 
   defh set_rate_per_message(%{"multiplier" => multiplier}) do
     store_data(:casino, :rate_per_message, multiplier |> String.to_integer)
-    reply "Wage of #{multiplier} coins per minute set!"
+    reply "Done, users will earn #{multiplier} coins per message."
   end
 
   # Command action handlers
