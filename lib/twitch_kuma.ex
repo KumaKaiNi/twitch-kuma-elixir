@@ -57,6 +57,7 @@ defmodule TwitchKuma do
       match "!botw", :get_botw_bingo
       match "!quote :quote_id", :get_quote
       match "!quote", :get_quote
+      match "!jackpot", :get_jackpot
       match_all :custom_command
       match ["ty kuma", "thanks kuma", "thank you kuma"], :ty_kuma
     end
@@ -174,6 +175,11 @@ defmodule TwitchKuma do
     end
 
     whisper "You have #{amount} coins."
+  end
+
+  defh get_jackpot do
+    jackpot = query_data(:bank, "kumakaini")
+    replylog "There is currently #{jackpot} coins in the jackpot."
   end
 
   defh slot_machine(%{"bet" => bet}) do
