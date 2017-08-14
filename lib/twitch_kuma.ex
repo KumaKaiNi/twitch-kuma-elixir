@@ -224,7 +224,7 @@ defmodule TwitchKuma do
                     whisper "Sorry, you didn't win anything."
                   bonus ->
                     payout = bet * bonus
-                    store_data(:bank, message.user.nick, bank + payout)
+                    store_data(:bank, message.user.nick, bank - bet + payout)
                     whisper "Congrats, you won #{payout} coins!"
                 end
             end
