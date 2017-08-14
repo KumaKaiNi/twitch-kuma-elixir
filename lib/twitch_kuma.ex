@@ -104,14 +104,20 @@ defmodule TwitchKuma do
   end
 
   handle "PART" do
-    rate_per_minute = query_data(:casino, :rate_per_minute)
-    join_time = query_data(:viewers, message.user.nick)
-    current_time = DateTime.utc_now |> DateTime.to_unix
-    total_time = current_time - join_time
-    payout = (total_time / 60) * rate_per_minute
+    viewers = query_all_data(:viewers)
 
-    pay_user(message.user.nick, round(payout))
-    delete_data(:viewers, message.user.nick)
+    case viewers do
+      nil -> nil
+      viewers ->
+        rate_per_minute = query_data(:casino, :rate_per_minute)
+        join_time = query_data(:viewers, message.user.nick)
+        current_time = DateTime.utc_now |> DateTime.to_unix
+        total_time = current_time - join_time
+        payout = (total_time / 60) * rate_per_minute
+
+        pay_user(message.user.nick, round(payout))
+        delete_data(:viewers, message.user.nick)
+    end
   end
 
   handle "PING" do
