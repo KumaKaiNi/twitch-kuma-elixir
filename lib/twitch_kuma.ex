@@ -359,6 +359,8 @@ defmodule TwitchKuma do
     reply "The winning numbers today are #{winning_ticket}!"
 
     winners = for {username, ticket} <- query_all_data(:lottery) do
+      delete_data(:lottery, username)
+
       cond do
         ticket == winning_ticket -> username
         true -> nil
