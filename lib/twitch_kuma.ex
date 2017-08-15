@@ -254,6 +254,7 @@ defmodule TwitchKuma do
           end
         end
 
+        delete_data(:bets, betname)
         reply "#{choice} has won! Winnings have been distributed."
       true -> reply "#{choice} is not a valid selection for #{betname}."
     end
