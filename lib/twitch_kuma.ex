@@ -9,12 +9,10 @@ defmodule TwitchKuma do
     pid = Kaguya.Util.getChanPid(chan)
     user = GenServer.call(pid, {:get_user, nick})
 
-    if user == nil do
-      false
-    else if nick == "rekyuus" do
-      true
-    else
-      user.mode == :op
+    cond do
+      user == nil -> false
+      nick == "rekyuus" -> true
+      true -> user.mode == :op
     end
   end
 
