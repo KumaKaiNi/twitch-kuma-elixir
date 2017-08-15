@@ -318,23 +318,23 @@ defmodule TwitchKuma do
 
   # Lottery tickets
   defh buy_lottery_ticket(%{"numbers" => choices}) do
-    choices = choices |> String.split
-    {_, safeguard} = choices |> Enum.join |> Integer.parse
-    numbers = choices |> Enum.join |> String.length
+    ticket = query_data(:lottery, message.user.nick)
 
-    case safeguard do
-      "" ->
+    case ticket do
+      nil ->
+        bank = query_data(:bank, message.user.nick)
+
         cond do
-          length(choices) == 3 and numbers == 3 ->
-            bank = query_data(:bank, message.user.nick)
+          bank < 50 -> whisper "You do not have 50 coins to purchase a lottery ticket."
+          true ->
+            choices = choices |> String.split
+            {_, safeguard} = choices |> Enum.join |> Integer.parse
+            numbers = choices |> Enum.join |> String.length
 
-            cond do
-              bank < 50 -> whisper "You do not have 50 coins to purchase a lottery ticket."
-              true ->
-                ticket = query_data(:lottery, message.user.nick)
-
-                case ticket do
-                  nil ->
+            case safeguard do
+              "" ->
+                cond do
+                  length(choices) == 3 and numbers == 3 ->
                     jackpot = query_data(:bank, "kumakaini")
 
                     store_data(:bank, message.user.nick, bank - 50)
@@ -343,12 +343,12 @@ defmodule TwitchKuma do
                     store_data(:lottery, message.user.nick, choices |> Enum.join(" "))
 
                     whisper "Your lottery ticket of #{choices |> Enum.join(" ")} has been purchased for 50 coins."
-                  ticket -> whisper "You've already purchased a ticket of #{ticket}. Please wait for the next drawing to buy again."
+                  true -> whisper "Please send me three numbers, ranging between 0-9."
                 end
+              _ -> whisper "Please only send me three numbers, ranging between 0-9."
             end
-          true -> whisper "Please send me three numbers, ranging between 0-9."
         end
-      _ -> whisper "Please only send me three numbers, ranging between 0-9."
+      ticket -> whisper "You've already purchased a ticket of #{ticket}. Please wait for the next drawing to buy again."
     end
   end
 
