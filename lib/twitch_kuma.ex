@@ -204,6 +204,7 @@ defmodule TwitchKuma do
         cond do
           Enum.member?(bet.choices, choice) ->
             bank = query_data(:bank, message.user.nick)
+            {amount, _} = amount |> Integer.parse
 
             cond do
               amount > bank -> whisper "You do not have enough coins to make your bet. You have #{bank} coins."
