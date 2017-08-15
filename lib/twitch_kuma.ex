@@ -230,10 +230,10 @@ defmodule TwitchKuma do
 
     cond do
       bet.closed == false ->
-        store_data(:bets, betname, %{choices: bet.choices, users: users, closed: true})
+        store_data(:bets, betname, %{choices: bet.choices, users: bet.users, closed: true})
         reply "Bets for #{betname} are now closed!"
       true ->
-        store_data(:bets, betname, %{choices: bet.choices, users: users, closed: false})
+        store_data(:bets, betname, %{choices: bet.choices, users: bet.users, closed: false})
         reply "Bets for #{betname} have been re-opened!"
     end
   end
