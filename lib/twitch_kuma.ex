@@ -11,6 +11,8 @@ defmodule TwitchKuma do
 
     if user == nil do
       false
+    else if nick == "rekyuus" do
+      true
     else
       user.mode == :op
     end
@@ -203,11 +205,22 @@ defmodule TwitchKuma do
       bet.closed == false ->
         cond do
           Enum.member?(bet.choices, choice) ->
-            users = bet.users ++ {message.user.nick, choice, amount}
-            store_data(:bets, betname, %{choices: bet.choices, users: users, closed: false})
-          true -> reply "That is not a valid choice."
+            bank = query_data(:bank, message.user.nick)
+
+            cond do
+              amount > bank -> whisper "You do not have enough coins to make your bet. You have #{bank} coins."
+              amount <= 0 -> nil
+              true ->
+                users = bet.users ++ [{message.user.nick, choice, amount}]
+
+                store_data(:bank, user, bank - amount)
+                store_data(:bets, betname, %{choices: bet.choices, users: users, closed: false})
+
+                whisper "You placed #{amount} coins. You now have #{bank - amount} coins."
+            end
+          true -> whisper "That is not a valid choice for #{betname}."
         end
-      true -> reply "Bets for #{betname} are closed!"
+      true -> whisper "Bets for #{betname} are closed!"
     end
   end
 
