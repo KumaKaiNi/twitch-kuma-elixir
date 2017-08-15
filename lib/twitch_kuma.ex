@@ -211,7 +211,7 @@ defmodule TwitchKuma do
               true ->
                 users = bet.users ++ [{message.user.nick, choice, amount}]
 
-                store_data(:bank, user, bank - amount)
+                store_data(:bank, message.user.nick, bank - amount)
                 store_data(:bets, betname, %{choices: bet.choices, users: users, closed: false})
 
                 whisper "You placed #{amount} coins. You now have #{bank - amount} coins."
