@@ -204,7 +204,7 @@ defmodule TwitchKuma do
         cond do
           Enum.member?(bet.choices, choice) ->
             users = bet.users ++ {message.user.nick, choice, amount}
-            store_data(:bets, betname, [choices: choices, users: users, closed: false])
+            store_data(:bets, betname, [choices: bet.choices, users: users, closed: false])
           true -> reply "That is not a valid choice."
         end
       true -> reply "Bets for #{betname} are closed!"
