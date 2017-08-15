@@ -92,6 +92,7 @@ defmodule TwitchKuma do
   handle "WHISPER" do
     match "!coins", :coins
     match "!slots :bet", :slot_machine
+    match "!lottery ~numbers", :buy_lottery_ticket
   end
 
   # Payout helper for viewing
@@ -316,7 +317,7 @@ defmodule TwitchKuma do
   end
 
   # Lottery tickets
-  defh buy_lottery_ticket(%{"choices" => choices}) do
+  defh buy_lottery_ticket(%{"numbers" => choices}) do
     choices = choices |> String.split
     {_, safeguard} = choices |> Enum.join |> Integer.parse
     numbers = choices |> Enum.join |> String.length
