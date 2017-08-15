@@ -58,6 +58,7 @@ defmodule TwitchKuma do
       match "!quote :quote_id", :get_quote
       match "!quote", :get_quote
       match "!jackpot", :get_jackpot
+      match "!bet :amount :betname ~choice", :make_bet
       match_all :custom_command
       match ["ty kuma", "thanks kuma", "thank you kuma"], :ty_kuma
     end
@@ -73,6 +74,7 @@ defmodule TwitchKuma do
       match "!del :command", :delete_custom_command
       match "!addquote ~quote_text", :add_quote
       match "!delquote :quote_id", :del_quote
+      match "!newbet :betname ~choices", :create_new_bet
     end
 
     enforce :rekyuu do
@@ -186,6 +188,27 @@ defmodule TwitchKuma do
   defh get_jackpot do
     jackpot = query_data(:bank, "kumakaini")
     replylog "There are #{jackpot} coins in the jackpot."
+  end
+
+  defh create_new_bet(%{"betname" => betname, "choices" => choices}) do
+    choices = choices |> String.split(",")
+    store_data(:bets, betname, [choices: choices, users: [], closed: false)
+    reply "Bet created! Make bets by using !bet <amount> #{betname} <choice>"
+  end
+
+  defh make_bet(%{"amount" => amount, "betname" => betname, "choice" => choice}) do
+    bet = query_data(:bets, betname)
+
+    cond do
+      bet.closed == false ->
+        cond do
+          Enum.member?(bet.choices, choice) ->
+            users = bet.users ++ {message.user.nick, choice, amount}
+            store_data(:bets, betname, [choices: choices, users: users, closed: false)
+          true -> reply "That is not a valid choice."
+        end
+      true -> reply "Bets for #{betname} are closed!"
+    end
   end
 
   defh slot_machine(%{"bet" => bet}) do
