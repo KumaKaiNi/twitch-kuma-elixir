@@ -75,8 +75,9 @@ defmodule TwitchKuma do
       match "!addquote ~quote_text", :add_quote
       match "!delquote :quote_id", :del_quote
       match "!newbet :betname ~choices", :create_new_bet
-      match "!closebet :betname", :close_bet
-      match "!winningbet :betname ~choice", :finalize_bet
+      match "!close :betname", :close_bet
+      match "!winner :betname ~choice", :finalize_bet
+      match "!draw", :lottery_drawing
     end
 
     enforce :rekyuu do
@@ -113,7 +114,7 @@ defmodule TwitchKuma do
 
     case viewers do
       nil -> nil
-      viewers ->
+      _viewers ->
         rate_per_minute = query_data(:casino, :rate_per_minute)
         join_time = query_data(:viewers, message.user.nick)
         current_time = DateTime.utc_now |> DateTime.to_unix
@@ -352,6 +353,38 @@ defmodule TwitchKuma do
     end
   end
 
+  defh lottery_drawing do
+    winning_ticket = "#{Enum.random(0..9)} #{Enum.random(0..9)} #{Enum.random(0..9)}"
+
+    reply "The winning numbers today are #{winning_ticket}!"
+
+    winners = for {username, ticket} <- query_all_data(:lottery) do
+      cond do
+        ticket == winning_ticket -> username
+        true -> nil
+      end
+    end
+
+    jackpot = query_data(:bank, "kumakaini")
+    winners = Enum.uniq(winners) -- [nil]
+
+    case length(winners) do
+      0 -> reply "There are no winners today."
+      _ ->
+        winnings = jackpot / length(winners) |> round
+
+        for winner <- winners do
+          pay_user(winner, winnings)
+          reply "#{winner} has won #{winnings} coins!"
+          whisper winner, "You won the jackpot of #{winnings} coins! Congratulations!!"
+        end
+
+        reply "Congratulations!!"
+
+        store_data(:bank, "kumakaini", 0)
+    end
+  end
+
   # Administrative Casino Commands
   defh set_bonus(%{"multiplier" => multiplier}) do
     store_data(:casino, :bonus, multiplier |> String.to_integer)
@@ -399,7 +432,7 @@ defmodule TwitchKuma do
 
   defh coin_flip, do: replylog Enum.random(["Heads.", "Tails."])
 
-  defh prediction(%{"question" => q}) do
+  defh prediction(%{"question" => _q}) do
     predictions = [
       "It is certain.",
       "It is decidedly so.",
