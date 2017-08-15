@@ -75,6 +75,8 @@ defmodule TwitchKuma do
       match "!addquote ~quote_text", :add_quote
       match "!delquote :quote_id", :del_quote
       match "!newbet :betname ~choices", :create_new_bet
+      match "!closebet :betname", :close_bet
+      match "!winningbet :betname ~choice", :finalize_bet
     end
 
     enforce :rekyuu do
@@ -191,7 +193,7 @@ defmodule TwitchKuma do
   end
 
   defh create_new_bet(%{"betname" => betname, "choices" => choices}) do
-    choices = choices |> String.split(",")
+    choices = choices |> String.split(", ")
     store_data(:bets, betname, %{choices: choices, users: [], closed: false})
     reply "Bet created! Make bets by using !bet <amount> #{betname} <choice>"
   end
@@ -215,11 +217,45 @@ defmodule TwitchKuma do
                 store_data(:bank, message.user.nick, bank - amount)
                 store_data(:bets, betname, %{choices: bet.choices, users: users, closed: false})
 
-                whisper "You placed #{amount} coins. You now have #{bank - amount} coins."
+                whisper "You placed #{amount} coins on #{choice}. You now have #{bank - amount} coins."
             end
-          true -> whisper "That is not a valid choice for #{betname}."
+          true -> whisper "#{choice} is not a valid selection for #{betname}."
         end
-      true -> whisper "Bets for #{betname} are closed!"
+      true -> whisper "Bets for #{betname} are closed, sorry!"
+    end
+  end
+
+  defh close_bet(%{"betname" => betname}) do
+    bet = query_data(:bets, betname)
+
+    cond do
+      bet.closed == false ->
+        store_data(:bets, betname, %{choices: bet.choices, users: users, closed: true})
+        reply "Bets for #{betname} are now closed!"
+      true ->
+        store_data(:bets, betname, %{choices: bet.choices, users: users, closed: false})
+        reply "Bets for #{betname} have been re-opened!"
+    end
+  end
+
+  defh finalize_bet(%{"betname" = betname, "choice" => choice}) do
+    bet = query_data(:bets, betname)
+
+    cond do
+      Enum.member?(bet.choices, choice) ->
+        for {username, user_choice, bet_amount} <- bet.users do
+          cond do
+            user_choice == choice ->
+              pay_user(username, bet_amount * 2)
+              whisper(username, "#{choice} has won! You've earned #{bet_amount * 2} coins.")
+            true ->
+              jackpot = query_data(:bank, "kumakaini")
+              store_data(:bank, "kumakaini", jackpot + bet_amount)
+          end
+        end
+
+        reply "#{choice} has won! Winnings have been distributed."
+      true -> reply "#{choice} is not a valid selection for #{betname}."
     end
   end
 
@@ -243,9 +279,11 @@ defmodule TwitchKuma do
 
                 bonus = case {col1, col2, col3} do
                   {"🌸", "🌸", _}    -> 1
-                  {_, "🌸", "🌸"}    -> 1
                   {"🌸", _, "🌸"}    -> 1
+                  {_, "🌸", "🌸"}    -> 1
                   {"🌸", "🌸", "💎"} -> 2
+                  {"🌸", "💎", "🌸"} -> 2
+                  {"💎", "🌸", "🌸"} -> 2
                   {"🍒", "🍒", "🍒"} -> 4
                   {"🍊", "🍊", "🍊"} -> 6
                   {"🍋", "🍋", "🍋"} -> 8
