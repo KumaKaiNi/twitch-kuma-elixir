@@ -238,7 +238,7 @@ defmodule TwitchKuma do
     end
   end
 
-  defh finalize_bet(%{"betname" = betname, "choice" => choice}) do
+  defh finalize_bet(%{"betname" => betname, "choice" => choice}) do
     bet = query_data(:bets, betname)
 
     cond do
