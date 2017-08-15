@@ -192,6 +192,7 @@ defmodule TwitchKuma do
     replylog "There are #{jackpot} coins in the jackpot."
   end
 
+  # Betting
   defh create_new_bet(%{"betname" => betname, "choices" => choices}) do
     choices = choices |> String.split(", ")
     store_data(:bets, betname, %{choices: choices, users: [], closed: false})
@@ -260,6 +261,7 @@ defmodule TwitchKuma do
     end
   end
 
+  # Casino games
   defh slot_machine(%{"bet" => bet}) do
     bet = bet |> Integer.parse
 
@@ -310,6 +312,42 @@ defmodule TwitchKuma do
             end
         end
       :error -> whisper "Usage: !slots <bet>, where <bet> is a number between 1 and 25."
+    end
+  end
+
+  # Lottery tickets
+  defh buy_lottery_ticket(%{"choices" => choices}) do
+    choices = choices |> String.split
+    {_, safeguard} = choices |> Enum.join |> Integer.parse
+    numbers = choices |> Enum.join |> String.length
+
+    case safeguard do
+      "" ->
+        cond do
+          length(choices) == 3 and numbers == 3 ->
+            bank = query_data(:bank, message.user.nick)
+
+            cond do
+              bank < 50 -> whisper "You do not have 50 coins to purchase a lottery ticket."
+              true ->
+                ticket = query_data(:lottery, message.user.nick)
+
+                case ticket do
+                  nil ->
+                    jackpot = query_data(:bank, "kumakaini")
+
+                    store_data(:bank, message.user.nick, bank - 50)
+                    store_data(:bank, "kumakaini", jackpot + 50)
+
+                    store_data(:lottery, message.user.nick, choices |> Enum.join(" "))
+
+                    whisper "Your lottery ticket of #{choices |> Enum.join(" ")} has been purchased for 50 coins."
+                  ticket -> whisper "You've already purchased a ticket of #{ticket}. Please wait for the next drawing to buy again."
+                end
+            end
+          true -> whisper "Please send me three numbers, ranging between 0-9."
+        end
+      _ -> whisper "Please only send me three numbers, ranging between 0-9."
     end
   end
 
