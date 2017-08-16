@@ -192,10 +192,11 @@ defmodule TwitchKuma do
         case is_valid_url do
           {:ok, _} -> true
           {:error, _} -> false
+          nil -> false
         end
       end
 
-      unless links == nil do
+      if links do
         if Enum.member?(links, true) do
           reply "/purge #{message.user.nick}"
         end
