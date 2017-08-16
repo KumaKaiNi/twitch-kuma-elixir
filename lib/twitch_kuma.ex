@@ -195,8 +195,10 @@ defmodule TwitchKuma do
         end
       end
 
-      if Enum.member?(links, true) do
-        reply "/purge #{message.user.nick}"
+      if links do
+        if Enum.member?(links, true) do
+          reply "/purge #{message.user.nick}"
+        end
       end
     end
   end
