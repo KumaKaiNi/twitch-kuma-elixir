@@ -94,6 +94,7 @@ defmodule TwitchKuma do
     match "!coins", :coins
     match "!level :stat", :level_up
     match "!level", :check_level
+    match "!stats", :check_stats
     match "!slots :bet", :slot_machine
     match "!lottery ~numbers", :buy_lottery_ticket
   end
@@ -451,6 +452,20 @@ defmodule TwitchKuma do
       :math.pow((3.741657388 * next_lvl), 2) + (100 * next_lvl) |> round
 
     whisper "You are Level #{stats.level}. It will cost #{next_lvl_cost} coins to level up. You currently have #{bank} coins. Type `!level <stat>` to do so."
+  end
+
+  defh check_stats do
+    stats = query_data(:stats, message.user.nick)
+    stats = case stats do
+      nil -> %{level: 1, vit: 10, end: 10, str: 10, dex: 10, int: 10, luck: 10}
+      stats -> stats
+    end
+
+    next_lvl = stats.level + 1
+    next_lvl_cost =
+      :math.pow((3.741657388 * next_lvl), 2) + (100 * next_lvl) |> round
+
+    whisper "[Level #{stats.level}] [Vitality: #{stats.vit}] [Endurance: #{stats.end}] [Strength: #{stats.str}] [Dexterity: #{stats.dex}] [Intelligence: #{stats.int}] [Luck: #{stats.luck}] [#{next_lvl_cost} coins for Level #{next_lvl}]"
   end
 
   # Administrative Casino Commands
