@@ -178,7 +178,7 @@ defmodule TwitchKuma do
 
     if stats.level == 4 do
       links = for word <- words do
-        uri = URI.parse(word) do
+        uri = case URI.parse(word) do
           %URI{host: nil, path: path} ->
             if length(path |> String.split(".")) >= 2 do
               :inet.gethostbyname(String.to_charlist(path))
