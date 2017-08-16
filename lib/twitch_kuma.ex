@@ -199,7 +199,7 @@ defmodule TwitchKuma do
 
       if links do
         if Enum.member?(links, true) do
-          reply "/purge #{message.user.nick}"
+          reply "/timeout #{message.user.nick} 1 You must be Level 2 to post links."
         end
       end
     end
