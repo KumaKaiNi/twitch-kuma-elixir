@@ -176,7 +176,12 @@ defmodule TwitchKuma do
     words = message.trailing |> String.split
     stats = query_data(:stats, message.user.nick)
 
-    if stats.level == 1 do
+    level = case stats do
+      nil -> 1
+      stats -> stats.level
+    end
+
+    if level == 1 do
       links = for word <- words do
         uri = case URI.parse(word) do
           %URI{host: nil, path: path} ->
