@@ -176,12 +176,8 @@ defmodule TwitchKuma do
     words = message.trailing |> String.split
     stats = query_data(:stats, message.user.nick)
 
-    IO.inspect words
-
     if stats.level == 4 do
       links = for word <- words do
-        IO.inspect word
-
         uri = case URI.parse(word) do
           %URI{scheme: nil} -> nil
           %URI{host: nil}   -> nil
@@ -199,7 +195,7 @@ defmodule TwitchKuma do
         end
       end
 
-      if links do
+      unless links == nil do
         if Enum.member?(links, true) do
           reply "/purge #{message.user.nick}"
         end
