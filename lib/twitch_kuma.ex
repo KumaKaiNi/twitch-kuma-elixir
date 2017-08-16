@@ -338,7 +338,9 @@ defmodule TwitchKuma do
                 case bonus do
                   0 ->
                     stats = query_data(:stats, message.user.nick)
-                    odds = round((100 / stats.luck) * 100)
+                    odds =
+                      1250 * :math.pow(1.02256518256, -1 * stats.luck)
+                      |> round
 
                     if one_to(odds) do
                       whisper "You didn't win, but the machine gave you your money back."
