@@ -489,6 +489,7 @@ defmodule TwitchKuma do
   end
 
   defh check_stats do
+    bank = query_data(:bank, message.user.nick)
     stats = query_data(:stats, message.user.nick)
     stats = case stats do
       nil -> %{level: 1, vit: 10, end: 10, str: 10, dex: 10, int: 10, luck: 10}
@@ -499,7 +500,7 @@ defmodule TwitchKuma do
     next_lvl_cost =
       :math.pow((3.741657388 * next_lvl), 2) + (100 * next_lvl) |> round
 
-    whisper "[Level #{stats.level}] [Vitality: #{stats.vit}] [Endurance: #{stats.end}] [Strength: #{stats.str}] [Dexterity: #{stats.dex}] [Intelligence: #{stats.int}] [Luck: #{stats.luck}] [#{next_lvl_cost} coins for Level #{next_lvl}]"
+    whisper "[Level #{stats.level}] [Coins: #{bank}] [Next Level: #{next_lvl_cost}] [Vitality: #{stats.vit}] [Endurance: #{stats.end}] [Strength: #{stats.str}] [Dexterity: #{stats.dex}] [Intelligence: #{stats.int}] [Luck: #{stats.luck}]"
   end
 
   # Administrative Casino Commands
