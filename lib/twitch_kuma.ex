@@ -42,6 +42,7 @@ defmodule TwitchKuma do
   # Commands list
   handle "PRIVMSG" do
     match_all :logger
+    match_all :moderate
 
     enforce :rate_limit do
       match "!help", :help
@@ -169,6 +170,35 @@ defmodule TwitchKuma do
     time = DateTime.utc_now |> DateTime.to_iso8601
     logline = "[#{time}] #{message.user.nick}: #{message.trailing}\n"
     File.write!(logfile, logline, [:append])
+  end
+
+  defh moderate do
+    words = message.trailing |> String.split
+    stats = query_data(:stats, message.user.nick)
+
+    if stats.level == 1 do
+      links = for word <- words do
+        uri = case URI.parse(word) do
+          %URI{scheme: nil} -> nil
+          %URI{host: nil}   -> nil
+          %URI{path: nil}   -> nil
+          uri -> uri
+        end
+
+        is_valid_url = if uri do
+          :inet.gethostbyname(String.to_charlist(uri.host))
+        end
+
+        case is_valid_url do
+          {:ok, _} -> true
+          {:error, _} -> false
+        end
+      end
+
+      if Enum.member?(links, true) do
+        reply "/purge #{message.user.nick}"
+      end
+    end
   end
 
   # Casino Stuff
