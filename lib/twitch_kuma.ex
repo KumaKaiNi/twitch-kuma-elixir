@@ -178,18 +178,19 @@ defmodule TwitchKuma do
 
     if stats.level == 4 do
       links = for word <- words do
-        uri = case URI.parse(word) do
-          %URI{scheme: nil} -> nil
-          %URI{host: nil}   -> nil
-          %URI{path: nil}   -> nil
-          uri -> uri
+        uri = URI.parse(word) do
+          %URI{host: nil, path: path} ->
+            if length(path |> String.split(".")) >= 2 do
+              :inet.gethostbyname(String.to_charlist(path))
+            else
+              nil
+            end
+          %URI{host: host} ->
+            :inet.gethostbyname(String.to_charlist(host))
+          uri -> nil
         end
 
-        is_valid_url = if uri do
-          :inet.gethostbyname(String.to_charlist(uri.host))
-        end
-
-        case is_valid_url do
+        case uri do
           {:ok, _} -> true
           {:error, _} -> false
           nil -> false
