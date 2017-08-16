@@ -404,7 +404,7 @@ defmodule TwitchKuma do
       :math.pow((3.741657388 * next_lvl), 2) + (100 * next_lvl) |> round
 
     cond do
-      next_lvl_cost > bank -> whisper "You do not have enough coins. #{next_lvl_cost} coins are required."
+      next_lvl_cost > bank -> whisper "You do not have enough coins. #{next_lvl_cost} coins are required. You currently have #{bank} coins."
       true ->
         stat = case stat do
           "vit" -> "vitality"
@@ -439,6 +439,7 @@ defmodule TwitchKuma do
 
   defh check_level do
     stats = query_data(:stats, message.user.nick)
+    bank = query_data(:bank, message.user.nick)
 
     stats = case stats do
       nil -> %{level: 1, vit: 10, end: 10, str: 10, dex: 10, int: 10, luck: 10}
@@ -449,7 +450,7 @@ defmodule TwitchKuma do
     next_lvl_cost =
       :math.pow((3.741657388 * next_lvl), 2) + (100 * next_lvl) |> round
 
-    whisper "You are Level #{stats.level}. It will cost #{next_lvl_cost} coins to level up. Type !level <stat> to do so."
+    whisper "You are Level #{stats.level}. It will cost #{next_lvl_cost} coins to level up. You currently have #{bank} coins. Type `!level <stat>` to do so."
   end
 
   # Administrative Casino Commands
