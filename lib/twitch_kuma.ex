@@ -444,7 +444,8 @@ defmodule TwitchKuma do
     end
 
     next_lvl = stats.level + 1
-    next_lvl_cost = ((3.741657388 * next_lvl) ^ 2) + (100 * next_lvl) |> round
+    next_lvl_cost =
+      :math.pow((3.741657388 * next_lvl), 2) + (100 * next_lvl) |> round
 
     whisper "You are Level #{stats.level}. It will cost #{next_lvl_cost} coins to level up. Type !level <stat> to do so."
   end
