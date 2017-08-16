@@ -500,7 +500,7 @@ defmodule TwitchKuma do
     next_lvl_cost =
       :math.pow((3.741657388 * next_lvl), 2) + (100 * next_lvl) |> round
 
-    whisper "[Level #{stats.level}] [Coins: #{bank}] [Next Level: #{next_lvl_cost}] [Vitality: #{stats.vit}] [Endurance: #{stats.end}] [Strength: #{stats.str}] [Dexterity: #{stats.dex}] [Intelligence: #{stats.int}] [Luck: #{stats.luck}]"
+    whisper "[Level #{stats.level}] [Coins: #{bank}] [Next Level: #{next_lvl_cost} Coins] [Vitality: #{stats.vit}] [Endurance: #{stats.end}] [Strength: #{stats.str}] [Dexterity: #{stats.dex}] [Intelligence: #{stats.int}] [Luck: #{stats.luck}]"
   end
 
   # Administrative Casino Commands
