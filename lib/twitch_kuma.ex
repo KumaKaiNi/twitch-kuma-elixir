@@ -426,7 +426,7 @@ defmodule TwitchKuma do
         end
 
         case stats do
-          :error -> whisper "That is not a valid stat."
+          :error -> whisper "That is not a valid stat. Valid stats are vit, end, str, dex, int, luck."
           stats ->
             stats = %{stats | level: next_lvl}
 
