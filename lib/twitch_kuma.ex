@@ -92,6 +92,8 @@ defmodule TwitchKuma do
   # Whisper commands
   handle "WHISPER" do
     match "!coins", :coins
+    match "!level :stat", :level_up
+    match "!level", :check_level
     match "!slots :bet", :slot_machine
     match "!lottery ~numbers", :buy_lottery_ticket
   end
@@ -283,16 +285,16 @@ defmodule TwitchKuma do
                 {col1, col2, col3} = {Enum.random(reel), Enum.random(reel), Enum.random(reel)}
 
                 bonus = case {col1, col2, col3} do
-                  {"🌸", "🌸", _}    -> 1
-                  {"🌸", _, "🌸"}    -> 1
-                  {_, "🌸", "🌸"}    -> 1
+                  {"⚓", "⚓", "⚓"} -> 10
+                  {"🍋", "🍋", "🍋"} -> 8
+                  {"🍊", "🍊", "🍊"} -> 6
+                  {"🍒", "🍒", "🍒"} -> 4
                   {"🌸", "🌸", "💎"} -> 2
                   {"🌸", "💎", "🌸"} -> 2
                   {"💎", "🌸", "🌸"} -> 2
-                  {"🍒", "🍒", "🍒"} -> 4
-                  {"🍊", "🍊", "🍊"} -> 6
-                  {"🍋", "🍋", "🍋"} -> 8
-                  {"⚓", "⚓", "⚓"} -> 10
+                  {"🌸", "🌸", _}    -> 1
+                  {"🌸", _, "🌸"}    -> 1
+                  {_, "🌸", "🌸"}    -> 1
                   _ -> 0
                 end
 
@@ -371,7 +373,7 @@ defmodule TwitchKuma do
     winners = Enum.uniq(winners) -- [nil]
 
     case length(winners) do
-      0 -> reply "There are no winners today."
+      0 -> reply "There are no winners."
       _ ->
         winnings = jackpot / length(winners) |> round
 
@@ -385,6 +387,65 @@ defmodule TwitchKuma do
 
         store_data(:bank, "kumakaini", 0)
     end
+  end
+
+  # Leveling
+  defh level_up(%{"stat" => stat}) do
+    stats = query_data(:stats, message.user.nick)
+    bank = query_data(:bank, message.user.nick)
+
+    stats = case stats do
+      nil -> %{level: 1, vit: 10, end: 10, str: 10, dex: 10, int: 10, luck: 10}
+      stats -> stats
+    end
+
+    next_lvl = stats.level + 1
+    next_lvl_cost = ((3.741657388 * next_lvl) ^ 2) + (100 * next_lvl) |> round
+
+    cond do
+      next_lvl_cost > bank -> whisper "You do not have enough coins. #{next_lvl_cost} coins are required."
+      true ->
+        stat = case stat do
+          "vit" -> "vitality"
+          "end" -> "endurance"
+          "str" -> "strength"
+          "dex" -> "dexterity"
+          "int" -> "intelligence"
+          stat -> stat
+        end
+
+        stats = case stat do
+          "vitality"      -> %{stats | vit: stats.vit + 1}
+          "endurance"     -> %{stats | end: stats.end + 1}
+          "strength"      -> %{stats | str: stats.str + 1}
+          "dexterity"     -> %{stats | dex: stats.dex + 1}
+          "intelligence"  -> %{stats | int: stats.int + 1}
+          "luck"          -> %{stats | luck: stats.luck + 1}
+          _ -> :error
+        end
+
+        case stats do
+          :error -> whisper "That is not a valid stat."
+          stats ->
+            store_data(:bank, message.user.nick, bank - next_lvl_cost)
+            store_data(:stats, message.user.nick, stats)
+            whisper "You are now Level #{stats.level}! You have #{bank - next_lvl_cost} coins left."
+        end
+    end
+  end
+
+  defh check_level do
+    stats = query_data(:stats, message.user.nick)
+
+    stats = case stats do
+      nil -> %{level: 1, vit: 10, end: 10, str: 10, dex: 10, int: 10, luck: 10}
+      stats -> stats
+    end
+
+    next_lvl = stats.level + 1
+    next_lvl_cost = ((3.741657388 * next_lvl) ^ 2) + (100 * next_lvl) |> round
+
+    whisper "You are Level #{stats.level}. It will cost #{next_lvl_cost} coins to level up. Type !level <stat> to do so."
   end
 
   # Administrative Casino Commands
