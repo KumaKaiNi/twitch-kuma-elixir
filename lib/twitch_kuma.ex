@@ -428,6 +428,8 @@ defmodule TwitchKuma do
         case stats do
           :error -> whisper "That is not a valid stat."
           stats ->
+            stats = %{stats | level: next_lvl}
+
             store_data(:bank, message.user.nick, bank - next_lvl_cost)
             store_data(:stats, message.user.nick, stats)
             whisper "You are now Level #{stats.level}! You have #{bank - next_lvl_cost} coins left."
