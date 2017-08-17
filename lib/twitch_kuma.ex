@@ -300,6 +300,18 @@ defmodule TwitchKuma do
     end
   end
 
+  defh gift_all_coins(%{"gift" => gift}) do
+    {gift, _} = gift |> Integer.parse
+    users = query_all_data(:bank)
+
+    for {username, coins} <- users do
+      store_data(:bank, username, coins + gift)
+      whisper username, "You have been gifted #{gift} coins!"
+    end
+
+    reply "Gifted everyone #{gift} coins!"
+  end
+
   # Casino games
   defh slot_machine(%{"bet" => bet}) do
     bet = bet |> Integer.parse
