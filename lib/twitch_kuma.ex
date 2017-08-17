@@ -453,7 +453,7 @@ defmodule TwitchKuma do
 
   # Leveling
   defh level_up(%{"stat" => stat}) do
-    {stats, next_lvl_cost} = get_user_stats(username)
+    {stats, next_lvl_cost} = get_user_stats(message.user.nick)
     bank = query_data(:bank, message.user.nick)
 
     cond do
