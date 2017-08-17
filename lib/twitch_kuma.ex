@@ -79,7 +79,7 @@ defmodule TwitchKuma do
       match "!close :betname", :close_bet
       match "!winner :betname ~choice", :finalize_bet
       match "!draw", :lottery_drawing
-      match "!giftall :gift", :lottery_drawing
+      match "!giftall :gift", :gift_all_coins
     end
 
     enforce :rekyuu do
@@ -303,14 +303,19 @@ defmodule TwitchKuma do
 
   defh gift_all_coins(%{"gift" => gift}) do
     {gift, _} = gift |> Integer.parse
-    users = query_all_data(:bank)
 
-    for {username, coins} <- users do
-      store_data(:bank, username, coins + gift)
-      whisper username, "You have been gifted #{gift} coins!"
+    cond do
+      gift <= 0 -> reply "Please gift 1 coin or more."
+      true ->
+        users = query_all_data(:bank)
+
+        for {username, coins} <- users do
+          whisper username, "You have been gifted #{gift} coins!"
+          store_data(:bank, username, coins + gift)
+        end
+
+        reply "Gifted everyone #{gift} coins!"
     end
-
-    reply "Gifted everyone #{gift} coins!"
   end
 
   # Casino games
