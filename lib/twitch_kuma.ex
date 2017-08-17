@@ -79,6 +79,7 @@ defmodule TwitchKuma do
       match "!close :betname", :close_bet
       match "!winner :betname ~choice", :finalize_bet
       match "!draw", :lottery_drawing
+      match "!giftall :gift", :lottery_drawing
     end
 
     enforce :rekyuu do
