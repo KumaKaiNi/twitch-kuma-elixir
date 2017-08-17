@@ -355,7 +355,7 @@ defmodule TwitchKuma do
 
                 case bonus do
                   0 ->
-                    stats = query_data(:stats, message.user.nick)
+                    {stats, _} = get_user_stats(username)
                     odds =
                       1250 * :math.pow(1.02256518256, -1 * stats.luck)
                       |> round
@@ -453,17 +453,8 @@ defmodule TwitchKuma do
 
   # Leveling
   defh level_up(%{"stat" => stat}) do
-    stats = query_data(:stats, message.user.nick)
+    {stats, next_lvl_cost} = get_user_stats(username)
     bank = query_data(:bank, message.user.nick)
-
-    stats = case stats do
-      nil -> %{level: 1, vit: 10, end: 10, str: 10, dex: 10, int: 10, luck: 10}
-      stats -> stats
-    end
-
-    next_lvl = stats.level + 1
-    next_lvl_cost =
-      :math.pow((3.741657388 * next_lvl), 2) + (100 * next_lvl) |> round
 
     cond do
       next_lvl_cost > bank -> whisper "You do not have enough coins. #{next_lvl_cost} coins are required. You currently have #{bank} coins."
@@ -490,7 +481,7 @@ defmodule TwitchKuma do
         case stats do
           :error -> whisper "That is not a valid stat. Valid stats are vit, end, str, dex, int, luck."
           stats ->
-            stats = %{stats | level: next_lvl}
+            stats = %{stats | level: stats.level + 1}
 
             store_data(:bank, message.user.nick, bank - next_lvl_cost)
             store_data(:stats, message.user.nick, stats)
@@ -500,32 +491,15 @@ defmodule TwitchKuma do
   end
 
   defh check_level do
-    stats = query_data(:stats, message.user.nick)
+    {stats, next_lvl_cost} = get_user_stats(username)
     bank = query_data(:bank, message.user.nick)
-
-    stats = case stats do
-      nil -> %{level: 1, vit: 10, end: 10, str: 10, dex: 10, int: 10, luck: 10}
-      stats -> stats
-    end
-
-    next_lvl = stats.level + 1
-    next_lvl_cost =
-      :math.pow((3.741657388 * next_lvl), 2) + (100 * next_lvl) |> round
 
     whisper "You are Level #{stats.level}. It will cost #{next_lvl_cost} coins to level up. You currently have #{bank} coins. Type `!level <stat>` to do so."
   end
 
   defh check_stats do
     bank = query_data(:bank, message.user.nick)
-    stats = query_data(:stats, message.user.nick)
-    stats = case stats do
-      nil -> %{level: 1, vit: 10, end: 10, str: 10, dex: 10, int: 10, luck: 10}
-      stats -> stats
-    end
-
-    next_lvl = stats.level + 1
-    next_lvl_cost =
-      :math.pow((3.741657388 * next_lvl), 2) + (100 * next_lvl) |> round
+    {stats, next_lvl_cost} = get_user_stats(username)
 
     whisper "[Level #{stats.level}] [Coins: #{bank}] [Level Up Cost: #{next_lvl_cost}] [Vitality: #{stats.vit}] [Endurance: #{stats.end}] [Strength: #{stats.str}] [Dexterity: #{stats.dex}] [Intelligence: #{stats.int}] [Luck: #{stats.luck}]"
   end
