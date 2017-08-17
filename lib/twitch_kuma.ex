@@ -355,7 +355,7 @@ defmodule TwitchKuma do
 
                 case bonus do
                   0 ->
-                    {stats, _} = get_user_stats(username)
+                    {stats, _} = get_user_stats(message.user.nick)
                     odds =
                       1250 * :math.pow(1.02256518256, -1 * stats.luck)
                       |> round
@@ -491,7 +491,7 @@ defmodule TwitchKuma do
   end
 
   defh check_level do
-    {stats, next_lvl_cost} = get_user_stats(username)
+    {stats, next_lvl_cost} = get_user_stats(message.user.nick)
     bank = query_data(:bank, message.user.nick)
 
     whisper "You are Level #{stats.level}. It will cost #{next_lvl_cost} coins to level up. You currently have #{bank} coins. Type `!level <stat>` to do so."
@@ -499,7 +499,7 @@ defmodule TwitchKuma do
 
   defh check_stats do
     bank = query_data(:bank, message.user.nick)
-    {stats, next_lvl_cost} = get_user_stats(username)
+    {stats, next_lvl_cost} = get_user_stats(message.user.nick)
 
     whisper "[Level #{stats.level}] [Coins: #{bank}] [Level Up Cost: #{next_lvl_cost}] [Vitality: #{stats.vit}] [Endurance: #{stats.end}] [Strength: #{stats.str}] [Dexterity: #{stats.dex}] [Intelligence: #{stats.int}] [Luck: #{stats.luck}]"
   end
