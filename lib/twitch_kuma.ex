@@ -79,6 +79,7 @@ defmodule TwitchKuma do
       match "!close :betname", :close_bet
       match "!winner :betname ~choice", :finalize_bet
       match "!draw", :lottery_drawing
+      match "!giftall :gift", :gift_all_coins
     end
 
     enforce :rekyuu do
@@ -301,6 +302,23 @@ defmodule TwitchKuma do
     end
   end
 
+  defh gift_all_coins(%{"gift" => gift}) do
+    {gift, _} = gift |> Integer.parse
+
+    cond do
+      gift <= 0 -> reply "Please gift 1 coin or more."
+      true ->
+        users = query_all_data(:bank)
+
+        for {username, coins} <- users do
+          whisper username, "You have been gifted #{gift} coins!"
+          store_data(:bank, username, coins + gift)
+        end
+
+        reply "Gifted everyone #{gift} coins!"
+    end
+  end
+
   # Casino games
   defh slot_machine(%{"bet" => bet}) do
     bet = bet |> Integer.parse
@@ -316,21 +334,21 @@ defmodule TwitchKuma do
             cond do
               bank < bet -> whisper "You do not have enough coins."
               true ->
-                reel = ["⚓", "💎", "🍋", "🍊", "🍒", "🌸"]
+                reel = ["⚓", "⭐", "🍋", "🍊", "🍒", "🌸"]
 
                 {col1, col2, col3} = {Enum.random(reel), Enum.random(reel), Enum.random(reel)}
 
                 bonus = case {col1, col2, col3} do
-                  {"⚓", "⚓", "⚓"} -> 10
-                  {"🍋", "🍋", "🍋"} -> 8
-                  {"🍊", "🍊", "🍊"} -> 6
-                  {"🍒", "🍒", "🍒"} -> 4
-                  {"🌸", "🌸", "💎"} -> 2
-                  {"🌸", "💎", "🌸"} -> 2
-                  {"💎", "🌸", "🌸"} -> 2
+                  {"🌸", "🌸", "⭐"} -> 2
+                  {"🌸", "⭐", "🌸"} -> 2
+                  {"⭐", "🌸", "🌸"} -> 2
                   {"🌸", "🌸", _}    -> 1
                   {"🌸", _, "🌸"}    -> 1
                   {_, "🌸", "🌸"}    -> 1
+                  {"🍒", "🍒", "🍒"} -> 4
+                  {"🍊", "🍊", "🍊"} -> 6
+                  {"🍋", "🍋", "🍋"} -> 8
+                  {"⚓", "⚓", "⚓"} -> 10
                   _ -> 0
                 end
 
@@ -338,12 +356,21 @@ defmodule TwitchKuma do
 
                 case bonus do
                   0 ->
-                    store_data(:bank, message.user.nick, bank - bet)
+                    {stats, _} = get_user_stats(message.user.nick)
+                    odds =
+                      1250 * :math.pow(1.02256518256, -1 * stats.luck)
+                      |> round
 
-                    kuma = query_data(:bank, "kumakaini")
-                    store_data(:bank, "kumakaini", kuma + bet)
+                    if one_to(odds) do
+                      whisper "You didn't win, but the machine gave you your money back."
+                    else
+                      store_data(:bank, message.user.nick, bank - bet)
 
-                    whisper "Sorry, you didn't win anything."
+                      kuma = query_data(:bank, "kumakaini")
+                      store_data(:bank, "kumakaini", kuma + bet)
+
+                      whisper "Sorry, you didn't win anything."
+                    end
                   bonus ->
                     payout = bet * bonus
                     store_data(:bank, message.user.nick, bank - bet + payout)
@@ -427,17 +454,8 @@ defmodule TwitchKuma do
 
   # Leveling
   defh level_up(%{"stat" => stat}) do
-    stats = query_data(:stats, message.user.nick)
+    {stats, next_lvl_cost} = get_user_stats(message.user.nick)
     bank = query_data(:bank, message.user.nick)
-
-    stats = case stats do
-      nil -> %{level: 1, vit: 10, end: 10, str: 10, dex: 10, int: 10, luck: 10}
-      stats -> stats
-    end
-
-    next_lvl = stats.level + 1
-    next_lvl_cost =
-      :math.pow((3.741657388 * next_lvl), 2) + (100 * next_lvl) |> round
 
     cond do
       next_lvl_cost > bank -> whisper "You do not have enough coins. #{next_lvl_cost} coins are required. You currently have #{bank} coins."
@@ -464,7 +482,7 @@ defmodule TwitchKuma do
         case stats do
           :error -> whisper "That is not a valid stat. Valid stats are vit, end, str, dex, int, luck."
           stats ->
-            stats = %{stats | level: next_lvl}
+            stats = %{stats | level: stats.level + 1}
 
             store_data(:bank, message.user.nick, bank - next_lvl_cost)
             store_data(:stats, message.user.nick, stats)
@@ -474,32 +492,15 @@ defmodule TwitchKuma do
   end
 
   defh check_level do
-    stats = query_data(:stats, message.user.nick)
+    {stats, next_lvl_cost} = get_user_stats(message.user.nick)
     bank = query_data(:bank, message.user.nick)
-
-    stats = case stats do
-      nil -> %{level: 1, vit: 10, end: 10, str: 10, dex: 10, int: 10, luck: 10}
-      stats -> stats
-    end
-
-    next_lvl = stats.level + 1
-    next_lvl_cost =
-      :math.pow((3.741657388 * next_lvl), 2) + (100 * next_lvl) |> round
 
     whisper "You are Level #{stats.level}. It will cost #{next_lvl_cost} coins to level up. You currently have #{bank} coins. Type `!level <stat>` to do so."
   end
 
   defh check_stats do
     bank = query_data(:bank, message.user.nick)
-    stats = query_data(:stats, message.user.nick)
-    stats = case stats do
-      nil -> %{level: 1, vit: 10, end: 10, str: 10, dex: 10, int: 10, luck: 10}
-      stats -> stats
-    end
-
-    next_lvl = stats.level + 1
-    next_lvl_cost =
-      :math.pow((3.741657388 * next_lvl), 2) + (100 * next_lvl) |> round
+    {stats, next_lvl_cost} = get_user_stats(message.user.nick)
 
     whisper "[Level #{stats.level}] [Coins: #{bank}] [Level Up Cost: #{next_lvl_cost}] [Vitality: #{stats.vit}] [Endurance: #{stats.end}] [Strength: #{stats.str}] [Dexterity: #{stats.dex}] [Intelligence: #{stats.int}] [Luck: #{stats.luck}]"
   end

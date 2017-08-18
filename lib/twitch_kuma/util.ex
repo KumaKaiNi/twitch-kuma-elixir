@@ -17,6 +17,20 @@ defmodule TwitchKuma.Util do
     store_data(:bank, user, coins)
   end
 
+  def get_user_stats(username) do
+    stats = query_data(:stats, username)
+    stats = case stats do
+      nil -> %{level: 1, vit: 10, end: 10, str: 10, dex: 10, int: 10, luck: 10}
+      stats -> stats
+    end
+
+    next_lvl = stats.level + 1
+    next_lvl_cost =
+      :math.pow((3.741657388 * next_lvl), 2) + (100 * next_lvl) |> round
+
+    {stats, next_lvl_cost}
+  end
+
   def bingo_builder(category, len) do
     seed = Float.ceil(999999 * :rand.uniform) |> round
 
