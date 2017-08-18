@@ -181,6 +181,7 @@ defmodule TwitchKuma do
         uri = case URI.parse(word) do
           %URI{host: nil, path: path} ->
             if length(path |> String.split(".")) >= 2 do
+              path = "www." <> path
               :inet.gethostbyname(String.to_charlist(path))
             else
               nil
