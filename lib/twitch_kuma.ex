@@ -183,11 +183,13 @@ defmodule TwitchKuma do
           %URI{host: nil, path: path} ->
             if length(path |> String.split(".")) >= 2 do
               path = "www." <> path
+              Logger.warn "Banning for posting link: #{path}"
               :inet.gethostbyname(String.to_charlist(path))
             else
               nil
             end
           %URI{host: host} ->
+            Logger.warn "Banning for posting link: #{host}"
             :inet.gethostbyname(String.to_charlist(host))
           uri -> nil
         end
