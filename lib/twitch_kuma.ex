@@ -182,7 +182,7 @@ defmodule TwitchKuma do
       links = for word <- words do
         uri = case URI.parse(word) do
           %URI{host: nil, path: path} ->
-            if length(path |> String.split(".")) >= 2 do
+            if length((path |> String.split(".")) -- [""]) >= 2 do
               path = "www." <> path
               Logger.warn "Banning for posting link: #{path}"
               :inet.gethostbyname(String.to_charlist(path))
