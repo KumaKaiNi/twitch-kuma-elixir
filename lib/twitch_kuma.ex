@@ -1,36 +1,10 @@
 defmodule TwitchKuma do
   use Kaguya.Module, "main"
-  use TwitchKuma.Module
+  use DiscordKuma.{Module, Commands}
+  import DiscordKuma.Util
   require Logger
 
   unless File.exists?("/home/bowan/bots/_db"), do: File.mkdir("/home/bowan/bots/_db")
-
-  # Validator for mods
-  def is_mod(%{user: %{nick: nick}, args: [chan]}) do
-    pid = Kaguya.Util.getChanPid(chan)
-    user = GenServer.call(pid, {:get_user, nick})
-
-    cond do
-      user == nil -> false
-      nick == "rekyuus" -> true
-      true -> user.mode == :op
-    end
-  end
-
-  # Validator for rekyuu
-  def rekyuu(%{user: %{nick: nick}}) do
-    nick == "rekyuus"
-  end
-
-  # Validator for rate limiting
-  def rate_limit(msg) do
-    {rate, _} = ExRated.check_rate(msg.trailing, 10_000, 1)
-
-    case rate do
-      :ok    -> true
-      :error -> false
-    end
-  end
 
   # Enable Twitch Messaging Interface and whispers
   handle "001" do
@@ -103,68 +77,9 @@ defmodule TwitchKuma do
   end
 
   # Payout helper for viewing
-  handle "JOIN" do
-    url = "https://decapi.me/twitch/uptime?channel=rekyuus"
-    request =  HTTPoison.get! url
-
-    case request.body do
-      "rekyuus is offline" -> nil
-      _ ->
-        current_time = DateTime.utc_now |> DateTime.to_unix
-        store_data(:viewers, message.user.nick, current_time)
-    end
-  end
-
-  handle "PART" do
-    viewers = query_all_data(:viewers)
-
-    case viewers do
-      nil -> nil
-      _viewers ->
-        rate_per_minute = query_data(:casino, :rate_per_minute)
-        join_time = query_data(:viewers, message.user.nick)
-        current_time = DateTime.utc_now |> DateTime.to_unix
-        total_time = current_time - join_time
-        payout = (total_time / 60) * rate_per_minute
-
-        pay_user(message.user.nick, round(payout))
-        delete_data(:viewers, message.user.nick)
-    end
-  end
-
-  handle "PING" do
-    url = "https://decapi.me/twitch/uptime?channel=rekyuus"
-    request =  HTTPoison.get! url
-
-    rate_per_minute = query_data(:casino, :rate_per_minute)
-    current_time = DateTime.utc_now |> DateTime.to_unix
-    viewers = query_all_data(:viewers)
-
-    case viewers do
-      nil -> nil
-      viewers ->
-        case request.body do
-          "rekyuus is offline" ->
-            for viewer <- viewers do
-              {user, join_time} = viewer
-              total_time = current_time - join_time
-              payout = (total_time / 60) * rate_per_minute
-
-              pay_user(user, round(payout))
-              delete_data(:viewers, user)
-            end
-          _ ->
-            for viewer <- viewers do
-              {user, join_time} = viewer
-              total_time = current_time - join_time
-              payout = (total_time / 60) * rate_per_minute
-
-              pay_user(user, round(payout))
-              store_data(:viewers, user, current_time)
-            end
-        end
-    end
-  end
+  handle "JOIN", do: viewer_join(message)
+  handle "PART", do: viewer_part(message)
+  handle "PING", do: viewer_payout
 
   # Chat logging
   defh logger do
@@ -172,45 +87,6 @@ defmodule TwitchKuma do
     time = DateTime.utc_now |> DateTime.to_iso8601
     logline = "[#{time}] #{message.user.nick}: #{message.trailing}\n"
     File.write!(logfile, logline, [:append])
-  end
-
-  defh moderate do
-    words = message.trailing |> String.split
-    stats = query_data(:stats, message.user.nick)
-    coins = query_data(:bank, message.user.nick)
-
-    unless stats do
-      unless coins >= 256 do
-        links = for word <- words do
-          uri = case URI.parse(word) do
-            %URI{host: nil, path: path} ->
-              if length((path |> String.split(".")) -- [""]) >= 2 do
-                path = "www." <> path
-                Logger.warn "Banning for posting link: #{path}"
-                :inet.gethostbyname(String.to_charlist(path))
-              else
-                nil
-              end
-            %URI{host: host} ->
-              Logger.warn "Banning for posting link: #{host}"
-              :inet.gethostbyname(String.to_charlist(host))
-            uri -> nil
-          end
-
-          case uri do
-            {:ok, _} -> true
-            {:error, _} -> false
-            nil -> false
-          end
-        end
-
-        if links do
-          if Enum.member?(links, true) do
-            reply "/timeout #{message.user.nick} 1 You must be Level 2 to post links."
-          end
-        end
-      end
-    end
   end
 
   # Casino Stuff
@@ -752,6 +628,28 @@ defmodule TwitchKuma do
             replylog "Quote removed."
         end
       :error -> replylog "You didn't specify an ID number."
+    end
+  end
+
+  def is_mod(%{user: %{nick: nick}, args: [chan]}) do
+    pid = Kaguya.Util.getChanPid(chan)
+    user = GenServer.call(pid, {:get_user, nick})
+
+    cond do
+      user == nil -> false
+      nick == "rekyuus" -> true
+      true -> user.mode == :op
+    end
+  end
+
+  def rekyuu(%{user: %{nick: nick}}), do: nick == "rekyuus"
+
+  def rate_limit(msg) do
+    {rate, _} = ExRated.check_rate(msg.trailing, 10_000, 1)
+
+    case rate do
+      :ok    -> true
+      :error -> false
     end
   end
 end
