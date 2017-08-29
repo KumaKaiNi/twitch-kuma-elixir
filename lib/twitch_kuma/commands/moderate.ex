@@ -2,6 +2,13 @@ defmodule TwitchKuma.Commands.Moderate do
   import Kaguya.Module
   import TwitchKuma.{Module, Util}
 
+  defh logger do
+    logfile = "/home/bowan/bots/_db/twitch.log"
+    time = DateTime.utc_now |> DateTime.to_iso8601
+    logline = "[#{time}] #{message.user.nick}: #{message.trailing}\n"
+    File.write!(logfile, logline, [:append])
+  end
+
   defh moderate do
     require Logger
 
