@@ -13,7 +13,7 @@ defmodule TwitchKuma.Commands.Quote do
         quotes = query_all_data(:quotes)
         {quote_id, quote_text} = Enum.random(quotes)
 
-        replylog "[\##{quote_id}] #{quote_text}"
+        replylog "[#{quote_id}] #{quote_text}"
     end
   end
 
@@ -21,7 +21,7 @@ defmodule TwitchKuma.Commands.Quote do
     quotes = query_all_data(:quotes)
     {quote_id, quote_text} = Enum.random(quotes)
 
-    replylog "[\##{quote_id}] #{quote_text}"
+    replylog "[#{quote_id}] #{quote_text}"
   end
 
   defh add_quote(%{"quote_text" => quote_text}) do
@@ -45,7 +45,7 @@ defmodule TwitchKuma.Commands.Quote do
     case quote_id |> Integer.parse do
       {quote_id, _} ->
         case query_data(:quotes, quote_id) do
-          nil -> replylog "Quote \##{quote_id} does not exist."
+          nil -> replylog "Quote #{quote_id} does not exist."
           _ ->
             delete_data(:quotes, quote_id)
             replylog "Quote removed."
