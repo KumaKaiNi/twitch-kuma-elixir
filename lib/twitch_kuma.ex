@@ -1,7 +1,7 @@
 defmodule TwitchKuma do
   use Kaguya.Module, "main"
-  use DiscordKuma.{Module, Commands}
-  import DiscordKuma.Util
+  use TwitchKuma.{Module, Commands}
+  import TwitchKuma.Util
   require Logger
 
   unless File.exists?("/home/bowan/bots/_db"), do: File.mkdir("/home/bowan/bots/_db")
