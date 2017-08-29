@@ -3,6 +3,8 @@ defmodule TwitchKuma.Commands.Moderate do
   import TwitchKuma.{Module, Util}
 
   defh moderate do
+    require Logger
+
     words = message.trailing |> String.split
     stats = query_data(:stats, message.user.nick)
     coins = query_data(:bank, message.user.nick)
