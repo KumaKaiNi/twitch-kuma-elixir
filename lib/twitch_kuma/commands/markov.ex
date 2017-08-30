@@ -2,7 +2,7 @@ defmodule TwitchKuma.Commands.Markov do
   import Kaguya.Module
   import TwitchKuma.Module
 
-  def get_markov(msg) do
+  defh get_markov do
     reply gen_markov("/home/bowan/bots/_db/twitch.log")
   end
 
