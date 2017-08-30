@@ -1,4 +1,5 @@
 defmodule TwitchKuma.Commands.Markov do
+  import Kaguya.Module
   import TwitchKuma.Module
 
   def get_markov(msg) do
