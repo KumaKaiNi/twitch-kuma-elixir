@@ -7,6 +7,7 @@ defmodule TwitchKuma.Commands do
         Custom,
         General,
         Image,
+        Markov,
         Moderate,
         Quote,
         Random,
