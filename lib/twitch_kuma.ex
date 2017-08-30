@@ -31,6 +31,7 @@ defmodule TwitchKuma do
       match "!quote :quote_id", :get_quote
       match "!quote", :get_quote
       match "!jackpot", :get_jackpot
+      match "!markov", :get_markov
       match "!bet :amount :betname ~choice", :make_bet
       match_all :custom_command
       match ["ty kuma", "thanks kuma", "thank you kuma"], :ty_kuma
