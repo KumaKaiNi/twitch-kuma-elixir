@@ -2,6 +2,7 @@ defmodule TwitchKuma.Commands do
   defmacro __using__(_opts) do
     quote do
       import TwitchKuma.Commands.{
+        Bank,
         Betting,
         Casino,
         Custom,
@@ -11,6 +12,8 @@ defmodule TwitchKuma.Commands do
         Moderate,
         Quote,
         Random,
+        RPG,
+        Shop,
         Stream
       }
     end
