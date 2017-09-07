@@ -123,14 +123,14 @@ defmodule TwitchKuma.Commands.Bank do
     to_bank = query_data(:bank, username)
 
     case amount do
-      :error -> reply "That is not a valid amount."
+      :error -> whisper "That is not a valid amount."
       {amount, _} ->
         case to_bank do
-          nil -> reply "That user does not exist."
+          nil -> whisper "That user does not exist."
           to_bank ->
             cond do
-              amount <= 0 -> reply "Please change your gift to an amount greater than 0."
-              from_bank < amount -> reply "You do not have enough coins."
+              amount <= 0 -> whisper "Please change your gift to an amount greater than 0."
+              from_bank < amount -> whisper "You do not have enough coins."
               true ->
                 store_data(:bank, message.user.nick, from_bank - amount)
                 store_data(:bank, username, to_bank + amount)
