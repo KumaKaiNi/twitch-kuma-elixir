@@ -119,6 +119,7 @@ defmodule TwitchKuma.Commands.Bank do
 
   defh give_user_coins(%{"username" => username, "amount" => amount}) do
     amount = amount |> Integer.parse
+    username = username |> String.downcase
     from_bank = query_data(:bank, message.user.nick)
     to_bank = query_data(:bank, username)
 
