@@ -72,7 +72,7 @@ defmodule TwitchKuma do
     match "!stats", :check_stats
     match "!slots :bet", :slot_machine
     match "!lottery ~numbers", :buy_lottery_ticket
-    match "!give :username :amount", :give_user_coins
+    match "!gift :username :amount", :give_user_coins
   end
 
   handle "JOIN", do: viewer_join(message)
