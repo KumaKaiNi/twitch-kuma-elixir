@@ -14,9 +14,11 @@ defmodule TwitchKuma do
   handle "WHISPER", do: match_all :make_call
 
   defh make_call do
-    [chan] = message.args
-    pid = Kaguya.Util.getChanPid(chan)
-    user = GenServer.call(pid, {:get_user, message.user.nick})
+    user = if message.command == "PRIVMSG" do
+      [chan] = message.args
+      pid = Kaguya.Util.getChanPid(chan)
+      GenServer.call(pid, {:get_user, message.user.nick})
+    end
 
     moderator = cond do
       user == nil -> false
@@ -24,21 +26,49 @@ defmodule TwitchKuma do
       true -> message.user.mode == :op
     end
 
-    private = case message.command do
-      "WHISPER" -> true
-      "PRIVMSG" -> false
+    {channel, private} = case message.command do
+      "WHISPER" -> {false, true}
+      "PRIVMSG" -> {"rekyuus", nil}
     end
 
-    content = %{username: message.user.nick, message: message.trailing, moderator: moderator, private: private}
+    data = %{
+      auth: Application.get_env(:twitch_kuma, :server_auth),
+      type: "message",
+      content: %{
+        protocol: "twitch",
+        guild: "twitch",
+        channel: channel,
+        private: private,
+        nsfw: private,
+        username: message.user.nick,
+        message: message.trailing,
+        moderator: moderator
+      }
+    } |> Poison.encode!
 
-    {:ok, hostname} = :inet.gethostname
-    response = :rpc.call(:"kuma@#{hostname}", KumaServer, :handle_call, [:message, content])
+    conn = :gen_tcp.connect({127,0,0,1}, 5862, [:binary, packet: 0, active: false])
 
-    case response do
-      nil -> nil
-      {:badrpc, {action, {reason, _}}} -> Logger.error "#{action}: #{reason}"
-      {:badrpc, :nodedown} -> Logger.error "Unable to connect to server"
-      response -> reply response
+    case conn do
+      {:ok, socket} ->
+        case :gen_tcp.send(socket, data) do
+          :ok ->
+            case :gen_tcp.recv(socket, 0) do
+              {:ok, response} ->
+                case response |> Poison.Parser.parse!(keys: :atoms) do
+                  %{reply: true, message: text} ->
+                    case message.command do
+                      "WHISPER" -> Kaguya.Util.sendPM("/w #{message.user.nick} #{text}", "#jtv")
+                      "PRIVMSG" -> reply text
+                    end
+                  _ -> nil
+                end
+              {:error, reason} -> Logger.error "Receive error: #{reason}"
+            end
+          {:error, reason} -> Logger.error "Send error: #{reason}"
+        end
+
+        :gen_tcp.close(socket)
+      {:error, reason} -> Logger.error "Connection error: #{reason}"
     end
   end
 end
