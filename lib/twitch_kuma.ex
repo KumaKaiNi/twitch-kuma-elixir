@@ -27,7 +27,7 @@ defmodule TwitchKuma do
     end
 
     {channel, private} = case message.command do
-      "WHISPER" -> {false, true}
+      "WHISPER" -> {"private", true}
       "PRIVMSG" -> {"rekyuus", nil}
     end
 
@@ -35,15 +35,16 @@ defmodule TwitchKuma do
       auth: Application.get_env(:twitch_kuma, :server_auth),
       type: "message",
       content: %{
-        protocol: "twitch",
-        guild: "twitch",
-        channel: channel,
-        private: private,
-        nsfw: private,
-        username: message.user.nick,
-        message: message.trailing,
-        moderator: moderator
-      }
+        source: %{
+          protocol: "irc",
+          guild: %{name: "twitch", id: nil},
+          channel: %{name: channel, id: nil, private: private, nsfw: private},
+        user: %{
+          id: nil,
+          avatar: nil,
+          name: message.user.nick,
+          moderator: moderator},
+        message: %{text: message.trailing, id: nil}
     } |> Poison.encode!
 
     conn = :gen_tcp.connect({127,0,0,1}, 5862, [:binary, packet: 0, active: false])
