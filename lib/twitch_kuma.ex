@@ -41,14 +41,13 @@ defmodule TwitchKuma do
         source: %{
           protocol: "irc",
           guild: %{name: "twitch", id: nil},
-          channel: %{name: channel, id: nil, private: private, nsfw: private},
+          channel: %{name: channel, id: nil, private: private, nsfw: private}},
         user: %{
           id: nil,
           avatar: nil,
           name: message.user.nick,
           moderator: moderator},
-        message: %{text: message.trailing, id: nil}
-    } |> Poison.encode!
+        message: %{text: message.trailing, id: nil}}} |> Poison.encode!
 
     conn = :gen_tcp.connect({127,0,0,1}, 5862, [:binary, packet: 0, active: false])
 
