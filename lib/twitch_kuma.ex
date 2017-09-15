@@ -1,5 +1,6 @@
 defmodule TwitchKuma do
   use Kaguya.Module, "main"
+  import TwitchKuma.Util
   require Logger
 
   handle "001" do
