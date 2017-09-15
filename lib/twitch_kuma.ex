@@ -27,7 +27,10 @@ defmodule TwitchKuma do
     moderator = cond do
       user == nil -> false
       message.user.nick == "rekyuus" -> true
-      true -> message.user.mode == :op
+      true -> case message.user.mode do
+        nil -> false
+        mode -> mode == :op
+      end
     end
 
     {channel, private} = case message.command do
