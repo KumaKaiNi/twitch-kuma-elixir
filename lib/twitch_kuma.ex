@@ -2,7 +2,6 @@ defmodule TwitchKuma do
   use Kaguya.Module, "main"
   require Logger
 
-  # Enable Twitch Messaging Interface and whispers
   handle "001" do
     GenServer.call(Kaguya.Core, {:send, %Kaguya.Core.Message{command: "CAP", args: ["REQ"], trailing: "twitch.tv/membership"}})
     GenServer.call(Kaguya.Core, {:send, %Kaguya.Core.Message{command: "CAP", args: ["REQ"], trailing: "twitch.tv/commands"}})
@@ -12,6 +11,10 @@ defmodule TwitchKuma do
 
   handle "PRIVMSG", do: match_all :make_call
   handle "WHISPER", do: match_all :make_call
+
+  handle "JOIN", do: viewer_join(message)
+  handle "PART", do: viewer_part(message)
+  handle "PING", do: viewer_payout
 
   defh make_call do
     user = if message.command == "PRIVMSG" do
@@ -70,6 +73,69 @@ defmodule TwitchKuma do
 
         :gen_tcp.close(socket)
       {:error, reason} -> Logger.error "Connection error: #{reason}"
+    end
+  end
+
+  def viewer_join(message) do
+    url = "https://decapi.me/twitch/uptime?channel=rekyuus"
+    request =  HTTPoison.get! url
+
+    case request.body do
+      "rekyuus is offline" -> nil
+      _ ->
+        current_time = DateTime.utc_now |> DateTime.to_unix
+        store_data(:viewers, message.user.nick, current_time)
+    end
+  end
+
+  def viewer_part(message) do
+    viewers = query_all_data(:viewers)
+
+    case viewers do
+      nil -> nil
+      _viewers ->
+        rate_per_minute = query_data(:casino, :rate_per_minute)
+        join_time = query_data(:viewers, message.user.nick)
+        current_time = DateTime.utc_now |> DateTime.to_unix
+        total_time = current_time - join_time
+        payout = (total_time / 60) * rate_per_minute
+
+        pay_user(message.user.nick, round(payout))
+        delete_data(:viewers, message.user.nick)
+    end
+  end
+
+  def viewer_payout do
+    url = "https://decapi.me/twitch/uptime?channel=rekyuus"
+    request =  HTTPoison.get! url
+
+    rate_per_minute = query_data(:casino, :rate_per_minute)
+    current_time = DateTime.utc_now |> DateTime.to_unix
+    viewers = query_all_data(:viewers)
+
+    case viewers do
+      nil -> nil
+      viewers ->
+        case request.body do
+          "rekyuus is offline" ->
+            for viewer <- viewers do
+              {user, join_time} = viewer
+              total_time = current_time - join_time
+              payout = (total_time / 60) * rate_per_minute
+
+              pay_user(user, round(payout))
+              delete_data(:viewers, user)
+            end
+          _ ->
+            for viewer <- viewers do
+              {user, join_time} = viewer
+              total_time = current_time - join_time
+              payout = (total_time / 60) * rate_per_minute
+
+              pay_user(user, round(payout))
+              store_data(:viewers, user, current_time)
+            end
+        end
     end
   end
 end
