@@ -28,7 +28,7 @@ defmodule TwitchKuma do
       user == nil -> false
       message.user.nick == "rekyuus" -> true
       true -> if message.user.mode do
-        mode == :op
+        message.user.mode == :op
       else
         false
       end
