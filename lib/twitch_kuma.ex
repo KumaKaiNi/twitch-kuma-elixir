@@ -26,9 +26,9 @@ defmodule TwitchKuma do
 
     moderator = cond do
       user == nil -> false
-      message.user.nick == "rekyuus" -> true
+      #message.user.nick == "rekyuus" -> true
       true -> if Map.has_key?(user, :mode) do
-        message.user.mode == :op
+        user.mode == :op
       else
         false
       end
