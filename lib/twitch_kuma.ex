@@ -10,7 +10,11 @@ defmodule TwitchKuma do
     Kaguya.Util.sendPM("Kuma~!", "#rekyuus")
   end
 
-  handle "PRIVMSG", do: match_all :make_call
+  handle "PRIVMSG" do
+    match "!kuma", :kuma
+    match_all :make_call
+  end
+
   handle "WHISPER", do: match_all :make_call
 
   handle "JOIN", do: viewer_join(message)
@@ -63,6 +67,11 @@ defmodule TwitchKuma do
             case :gen_tcp.recv(socket, 0) do
               {:ok, response} ->
                 case response |> Poison.Parser.parse!(keys: :atoms) do
+                  %{reply: true, response: %{text: text, image: image}} ->
+                    case message.command do
+                      "WHISPER" -> Kaguya.Util.sendPM("/w #{message.user.nick} #{image.source}", "#jtv")
+                      "PRIVMSG" -> reply image.source
+                    end
                   %{reply: true, message: text} ->
                     case message.command do
                       "WHISPER" -> Kaguya.Util.sendPM("/w #{message.user.nick} #{text}", "#jtv")
@@ -78,6 +87,11 @@ defmodule TwitchKuma do
         :gen_tcp.close(socket)
       {:error, reason} -> Logger.error "Connection error: #{reason}"
     end
+  end
+
+  defh kuma do
+    IO.inspect message
+    reply "Kuma~!"
   end
 
   def viewer_join(message) do
