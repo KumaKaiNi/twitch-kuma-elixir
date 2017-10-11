@@ -72,7 +72,7 @@ defmodule TwitchKuma do
                       "WHISPER" -> Kaguya.Util.sendPM("/w #{message.user.nick} #{image.source}", "#jtv")
                       "PRIVMSG" -> reply image.source
                     end
-                  %{reply: true, message: text} ->
+                  %{reply: true, response: %{text: text}} ->
                     case message.command do
                       "WHISPER" -> Kaguya.Util.sendPM("/w #{message.user.nick} #{text}", "#jtv")
                       "PRIVMSG" -> reply text
