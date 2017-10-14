@@ -58,34 +58,39 @@ defmodule TwitchKuma do
           moderator: moderator},
         message: %{text: message.trailing, id: nil}}} |> Poison.encode!
 
-    conn = :gen_tcp.connect({127,0,0,1}, 5862, [:binary, packet: 0, active: false])
+    spawn fn ->
+      conn = :gen_tcp.connect({127,0,0,1}, 5862, [:binary, packet: 0, active: false])
 
-    case conn do
-      {:ok, socket} ->
-        case :gen_tcp.send(socket, data) do
-          :ok ->
-            case :gen_tcp.recv(socket, 0) do
-              {:ok, response} ->
-                case response |> Poison.Parser.parse!(keys: :atoms) do
-                  %{reply: true, response: %{text: text, image: image}} ->
-                    case message.command do
-                      "WHISPER" -> Kaguya.Util.sendPM("/w #{message.user.nick} #{image.source}", "#jtv")
-                      "PRIVMSG" -> reply image.source
-                    end
-                  %{reply: true, response: %{text: text}} ->
-                    case message.command do
-                      "WHISPER" -> Kaguya.Util.sendPM("/w #{message.user.nick} #{text}", "#jtv")
-                      "PRIVMSG" -> reply text
-                    end
-                  _ -> nil
-                end
-              {:error, reason} -> Logger.error "Receive error: #{reason}"
-            end
-          {:error, reason} -> Logger.error "Send error: #{reason}"
-        end
+      case conn do
+        {:ok, socket} ->
+          case :gen_tcp.send(socket, data) do
+            :ok ->
+              case :gen_tcp.recv(socket, 0) do
+                {:ok, response} ->
+                  case response |> Poison.Parser.parse!(keys: :atoms) do
+                    %{reply: true, response: %{text: text, image: image}} ->
+                      case message.command do
+                        "WHISPER" -> Kaguya.Util.sendPM("/w #{message.user.nick} #{image.source}", "#jtv")
+                        "PRIVMSG" -> reply image.source
+                      end
+                    %{reply: true, response: %{text: text}} ->
+                      case message.command do
+                        "WHISPER" -> Kaguya.Util.sendPM("/w #{message.user.nick} #{text}", "#jtv")
+                        "PRIVMSG" -> reply text
+                      end
+                    _ -> nil
+                  end
+                {:error, :timeout} -> Logger.debug "Socket timed out"
+                {:error, reason} -> Logger.error "Receive error: #{reason}"
+              end
+            {:error, reason} -> Logger.error "Send error: #{reason}"
+          end
 
-        :gen_tcp.close(socket)
-      {:error, reason} -> Logger.error "Connection error: #{reason}"
+          :gen_tcp.close(socket)
+        {:error, reason} -> Logger.error "Connection error: #{reason}"
+      end
+
+      Process.exit(self(), :kill)
     end
   end
 
