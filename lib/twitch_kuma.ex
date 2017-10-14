@@ -65,7 +65,7 @@ defmodule TwitchKuma do
         {:ok, socket} ->
           case :gen_tcp.send(socket, data) do
             :ok ->
-              case :gen_tcp.recv(socket, 0) do
+              case :gen_tcp.recv(socket, 0, 5_000) do
                 {:ok, response} ->
                   case response |> Poison.Parser.parse!(keys: :atoms) do
                     %{reply: true, response: %{text: text, image: image}} ->
