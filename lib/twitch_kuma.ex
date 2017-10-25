@@ -149,7 +149,7 @@ defmodule TwitchKuma do
   def parse(map) do
     case map do
       "" -> nil
-      map -> Poison.Parser.parse!(keys: :atoms)
+      map -> Poison.Parser.parse!(map, keys: :atoms)
     end
   end
 end
