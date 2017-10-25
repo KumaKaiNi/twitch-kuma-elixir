@@ -14,7 +14,7 @@ defmodule TwitchKuma.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:ex_rated, :httpoison, :logger, :kaguya]]
+    [applications: [:logger, :kaguya, :httpoison]]
   end
 
   # Dependencies can be Hex packages:
@@ -27,10 +27,8 @@ defmodule TwitchKuma.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:ex_rated, "~> 1.2"},
-     {:httpoison, "~> 0.9.0"},
-     {:poison, "~> 2.0"},
-     {:kaguya, "~> 0.5.0"}
-    ]
+    [{:kaguya, "~> 0.5.0"},
+     {:poison, "~> 3.1"},
+     {:httpoison, "~> 0.13"}]
   end
 end
