@@ -44,53 +44,37 @@ defmodule TwitchKuma do
     end
 
     data = %{
-      auth: Application.get_env(:twitch_kuma, :server_auth),
-      type: "message",
-      content: %{
-        source: %{
-          protocol: "irc",
-          guild: %{name: "twitch", id: nil},
-          channel: %{name: channel, id: nil, private: private, nsfw: private}},
-        user: %{
-          id: nil,
-          avatar: nil,
-          name: message.user.nick,
-          moderator: moderator},
-        message: %{text: message.trailing, id: nil}}} |> Poison.encode!
+      protocol: "irc",
+      guild: %{id: nil, name: "twitch"},
+      channel: %{id: nil, name: channel, private: private, nsfw: private},
+      user: %{
+        id: nil,
+        avatar: nil,
+        name: message.user.nick,
+        moderator: moderator
+      },
+      message: %{id: nil, text: message.trailing, image: nil}
+    } |> Poison.encode!
 
-    spawn fn ->
-      conn = :gen_tcp.connect({127,0,0,1}, 5862, [:binary, packet: 0, active: false])
+    headers = %{
+      "Authorization" => Application.get_env(:twitch_kuma, :server_auth),
+      "Content-Type" => "application/json"
+    }
+    
+    request = HTTPoison.post!("http://kuma.riichi.me/api", data, headers)
 
-      case conn do
-        {:ok, socket} ->
-          case :gen_tcp.send(socket, data) do
-            :ok ->
-              case :gen_tcp.recv(socket, 0, 5_000) do
-                {:ok, response} ->
-                  case response |> Poison.Parser.parse!(keys: :atoms) do
-                    %{reply: true, response: %{text: text, image: image}} ->
-                      case message.command do
-                        "WHISPER" -> Kaguya.Util.sendPM("/w #{message.user.nick} #{image.source}", "#jtv")
-                        "PRIVMSG" -> reply image.source
-                      end
-                    %{reply: true, response: %{text: text}} ->
-                      case message.command do
-                        "WHISPER" -> Kaguya.Util.sendPM("/w #{message.user.nick} #{text}", "#jtv")
-                        "PRIVMSG" -> reply text
-                      end
-                    _ -> nil
-                  end
-                {:error, :timeout} -> Logger.debug "Socket timed out"
-                {:error, reason} -> Logger.error "Receive error: #{reason}"
-              end
-            {:error, reason} -> Logger.error "Send error: #{reason}"
-          end
-
-          :gen_tcp.close(socket)
-        {:error, reason} -> Logger.error "Connection error: #{reason}"
-      end
-
-      Process.exit(self(), :kill)
+    case request |> Map.fetch!(:body) |> parse() do
+      %{text: text, image: image} ->
+        case message.command do
+          "WHISPER" -> Kaguya.Util.sendPM("/w #{message.user.nick} #{image.source}", "#jtv")
+          "PRIVMSG" -> reply image.source
+        end
+      %{text: text} ->
+        case message.command do
+          "WHISPER" -> Kaguya.Util.sendPM("/w #{message.user.nick} #{text}", "#jtv")
+          "PRIVMSG" -> reply text
+        end
+      response -> IO.inspect response, label: "unknown response"
     end
   end
 
@@ -159,6 +143,13 @@ defmodule TwitchKuma do
               store_data(:viewers, user, current_time)
             end
         end
+    end
+  end
+
+  def parse(map) do
+    case map do
+      "" -> nil
+      map -> Poison.Parser.parse!(keys: :atoms)
     end
   end
 end
