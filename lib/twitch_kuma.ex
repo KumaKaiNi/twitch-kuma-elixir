@@ -61,20 +61,27 @@ defmodule TwitchKuma do
       "Content-Type" => "application/json"
     }
     
-    request = HTTPoison.post!("http://kuma.riichi.me/api", data, headers)
+    request = 
+      HTTPoison.post!("http://kuma.riichi.me/api", data, headers)
+      |> Map.fetch!(:body)
+      |> parse()
 
-    case request |> Map.fetch!(:body) |> parse() do
-      %{text: text, image: image} ->
-        case message.command do
-          "WHISPER" -> Kaguya.Util.sendPM("/w #{message.user.nick} #{image.source}", "#jtv")
-          "PRIVMSG" -> reply image.source
+    case request do
+      nil  -> nil
+      data -> 
+        case data.response do
+          %{text: text, image: image} ->
+            case message.command do
+              "WHISPER" -> Kaguya.Util.sendPM("/w #{message.user.nick} #{image.source}", "#jtv")
+              "PRIVMSG" -> reply image.source
+            end
+          %{text: text} ->
+            case message.command do
+              "WHISPER" -> Kaguya.Util.sendPM("/w #{message.user.nick} #{text}", "#jtv")
+              "PRIVMSG" -> reply text
+            end
+          data -> IO.inspect data, label: "unknown response"
         end
-      %{text: text} ->
-        case message.command do
-          "WHISPER" -> Kaguya.Util.sendPM("/w #{message.user.nick} #{text}", "#jtv")
-          "PRIVMSG" -> reply text
-        end
-      response -> IO.inspect response, label: "unknown response"
     end
   end
 
