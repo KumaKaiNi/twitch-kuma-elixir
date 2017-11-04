@@ -40,7 +40,7 @@ defmodule TwitchKuma do
 
     {channel, private} = case message.command do
       "WHISPER" -> {"private", true}
-      "PRIVMSG" -> {"rekyuus", nil}
+      "PRIVMSG" -> {"rekyuus", false}
     end
 
     data = %{
