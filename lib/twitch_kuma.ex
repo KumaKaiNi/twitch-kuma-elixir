@@ -62,7 +62,7 @@ defmodule TwitchKuma do
     }
     
     request = 
-      HTTPoison.post!("http://kuma.riichi.me/api", data, headers)
+      HTTPoison.post!("http://kuma.riichi.me/api", data, headers, [recv_timeout: 10_000])
       |> Map.fetch!(:body)
       |> parse()
 
