@@ -17,9 +17,11 @@ defmodule TwitchKuma do
 
   handle "WHISPER", do: match_all :make_call
 
+  """
   handle "JOIN", do: viewer_join(message)
   handle "PART", do: viewer_part(message)
   handle "PING", do: viewer_payout
+  """
 
   defh make_call do
     user = if message.command == "PRIVMSG" do
@@ -90,6 +92,7 @@ defmodule TwitchKuma do
     reply "Kuma~!"
   end
 
+  """
   def viewer_join(message) do
     url = "https://decapi.me/twitch/uptime?channel=rekyuus"
     request =  HTTPoison.get! url
@@ -152,6 +155,7 @@ defmodule TwitchKuma do
         end
     end
   end
+  """
 
   def parse(map) do
     case map do
